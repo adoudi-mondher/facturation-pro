@@ -1,8 +1,9 @@
 """
 Routes Produits
 """
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, redirect, url_for, flash
 from app.models.produit import Produit
+from app.forms.produit_form import ProduitForm
 from app.extensions import db
 
 bp = Blueprint('produits', __name__, url_prefix='/produits')
@@ -32,6 +33,23 @@ def list():
                          produits=produits, 
                          search=search)
 
+@bp.route('/create', methods=['GET', 'POST'])
+def create():
+    """Créer un nouveau produit"""
+    form = ProduitForm()
+    
+    if form.validate_on_submit():
+        produit = Produit()
+        form.populate_obj(produit)
+        
+        db.session.add(produit)
+        db.session.commit()
+        
+        flash(f'Produit {produit.designation} créé avec succès', 'success')
+        return redirect(url_for('produits.view', id=produit.id))
+    
+    return render_template('produits/create.html', form=form)
+
 @bp.route('/view/<int:id>')
 def view(id):
     """Voir un produit"""
@@ -45,3 +63,30 @@ def view(id):
     return render_template('produits/view.html', 
                          produit=produit,
                          mouvements=mouvements)
+
+@bp.route('/edit/<int:id>', methods=['GET', 'POST'])
+def edit(id):
+    """Modifier un produit"""
+    produit = Produit.query.get_or_404(id)
+    form = ProduitForm(obj=produit)
+    
+    if form.validate_on_submit():
+        form.populate_obj(produit)
+        db.session.commit()
+        
+        flash(f'Produit {produit.designation} modifié avec succès', 'success')
+        return redirect(url_for('produits.view', id=produit.id))
+    
+    return render_template('produits/edit.html', form=form, produit=produit)
+
+@bp.route('/delete/<int:id>', methods=['POST'])
+def delete(id):
+    """Supprimer un produit (soft delete)"""
+    produit = Produit.query.get_or_404(id)
+    
+    # Soft delete : on désactive juste
+    produit.actif = False
+    db.session.commit()
+    
+    flash(f'Produit {produit.designation} désactivé', 'success')
+    return redirect(url_for('produits.list'))

@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% from "components/form_macros.html" import render_field %}
+
+{% block title %}Nouveau produit - Facturation Pro{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-box-seam"></i> Nouveau produit</h1>
+    <a href="{{ url_for('produits.list') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Retour à la liste
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('produits.create') }}">
+            {{ form.hidden_tag() }}
+            
+            <h5 class="border-bottom pb-2 mb-3">Informations générales</h5>
+            
+            <div class="row">
+                <div class="col-md-4">
+                    {{ render_field(form.reference, placeholder="PROD-001") }}
+                </div>
+                <div class="col-md-8">
+                    {{ render_field(form.designation, placeholder="Ex: Plateau Mezze") }}
+                </div>
+            </div>
+            
+            {{ render_field(form.description, placeholder="Description détaillée du produit...") }}
+            
+            <div class="row">
+                <div class="col-md-6">
+                    {{ render_field(form.categorie, placeholder="Ex: Plateaux, Plats, Services...") }}
+                </div>
+                <div class="col-md-6">
+                    {{ render_field(form.unite) }}
+                </div>
+            </div>
+            
+            <hr class="my-4">
+            <h5 class="border-bottom pb-2 mb-3">Prix et TVA</h5>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    {{ render_field(form.prix_ht, placeholder="0.00") }}
+                    <small class="text-muted">Prix Hors Taxes</small>
+                </div>
+                <div class="col-md-6">
+                    {{ render_field(form.taux_tva, placeholder="20.00") }}
+                    <small class="text-muted">Taux de TVA applicable</small>
+                </div>
+            </div>
+            
+            <hr class="my-4">
+            <h5 class="border-bottom pb-2 mb-3">Gestion du stock</h5>
+            
+            {{ render_field(form.gerer_stock) }}
+            
+            <div id="champs-stock" style="display: none;">
+                <div class="row">
+                    <div class="col-md-6">
+                        {{ render_field(form.stock_actuel, placeholder="0") }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ render_field(form.stock_minimum, placeholder="0") }}
+                        <small class="text-muted">Seuil d'alerte</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> Créer le produit
+                </button>
+                <a href="{{ url_for('produits.list') }}" class="btn btn-secondary">
+                    Annuler
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Afficher/masquer champs stock
+const gererStockCheckbox = document.getElementById('gerer_stock');
+const champsStock = document.getElementById('champs-stock');
+
+gererStockCheckbox.addEventListener('change', function() {
+    champsStock.style.display = this.checked ? 'block' : 'none';
+});
+
+// État initial
+if (gererStockCheckbox.checked) {
+    champsStock.style.display = 'block';
+}
+</script>
+{% endblock %}
