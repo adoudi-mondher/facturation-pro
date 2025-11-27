@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# Database (NE PAS COMMITER LA BDD)
+*.db
+*.sqlite
+*.sqlite3
+data/facturation.db
+
+# Uploads (ne pas versionner les fichiers uploadés)
+data/uploads/*
+!data/uploads/.gitkeep
+
+# Logs
+logs/*.log
+*.log
+
+# Environment variables
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Backups
+*.backup
+*.bak
+
+#Architecture specific
+ARCHITECTURE_TECHNIQUE.txt
+CAHIER_DES_CHARGES.txt

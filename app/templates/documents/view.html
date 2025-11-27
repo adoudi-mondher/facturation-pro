@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}{{ document.numero }} - Facturation Pro{% endblock %}
+{% block content %}
+<h1><i class="bi bi-file-earmark-text"></i> {{ document.numero }}</h1>
+<div class="card">
+    <div class="card-body">
+        <p><strong>Client:</strong> {{ document.client.nom_complet }}</p>
+        <p><strong>Date:</strong> {{ document.date_emission|date_fr }}</p>
+        <p><strong>Total TTC:</strong> {{ document.total_ttc|currency }}</p>
+        <p><strong>Statut:</strong> {{ document.statut }}</p>
+    </div>
+</div>
+{% endblock %}
