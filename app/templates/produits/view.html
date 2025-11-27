@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}{{ produit.designation }} - Facturation Pro{% endblock %}
+{% block content %}
+<h1><i class="bi bi-box-seam"></i> {{ produit.designation }}</h1>
+<div class="card">
+    <div class="card-body">
+        <p><strong>Référence:</strong> {{ produit.reference or '-' }}</p>
+        <p><strong>Prix HT:</strong> {{ produit.prix_ht|currency }}</p>
+        <p><strong>TVA:</strong> {{ produit.taux_tva }}%</p>
+        <p><strong>Prix TTC:</strong> {{ produit.prix_ttc|currency }}</p>
+        {% if produit.gerer_stock %}
+        <p><strong>Stock actuel:</strong> {{ produit.stock_actuel }}</p>
+        <p><strong>Statut:</strong> 
+            <span class="badge bg-{{ 'danger' if produit.stock_statut == 'rupture' else 'warning' if produit.stock_statut == 'alerte' else 'success' }}">
+                {{ produit.stock_statut }}
+            </span>
+        </p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

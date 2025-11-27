@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Paramètres - Facturation Pro{% endblock %}
+{% block content %}
+<h1><i class="bi bi-gear"></i> Paramètres de l'entreprise</h1>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('parametres.save') }}">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Nom de l'entreprise *</label>
+                    <input type="text" name="nom" class="form-control" value="{{ entreprise.nom }}" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">SIRET</label>
+                    <input type="text" name="siret" class="form-control" value="{{ entreprise.siret or '' }}">
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" class="form-control" value="{{ entreprise.email or '' }}">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Téléphone</label>
+                    <input type="text" name="telephone" class="form-control" value="{{ entreprise.telephone or '' }}">
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Adresse</label>
+                <textarea name="adresse" class="form-control" rows="2">{{ entreprise.adresse or '' }}</textarea>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Code postal</label>
+                    <input type="text" name="code_postal" class="form-control" value="{{ entreprise.code_postal or '' }}">
+                </div>
+                <div class="col-md-8 mb-3">
+                    <label class="form-label">Ville</label>
+                    <input type="text" name="ville" class="form-control" value="{{ entreprise.ville or '' }}">
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">TVA Intracommunautaire</label>
+                    <input type="text" name="tva_intra" class="form-control" value="{{ entreprise.tva_intra or '' }}">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Taux TVA par défaut (%)</label>
+                    <input type="number" name="taux_tva_defaut" class="form-control" step="0.01" 
+                           value="{{ entreprise.taux_tva_defaut }}" required>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Site web</label>
+                <input type="url" name="site_web" class="form-control" value="{{ entreprise.site_web or '' }}">
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Mentions légales</label>
+                <textarea name="mentions_legales" class="form-control" rows="3">{{ entreprise.mentions_legales or '' }}</textarea>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save"></i> Sauvegarder
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

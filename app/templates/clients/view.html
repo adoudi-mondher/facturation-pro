@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}{{ client.nom_complet }} - Facturation Pro{% endblock %}
+{% block content %}
+<h1><i class="bi bi-person"></i> {{ client.nom_complet }}</h1>
+<div class="card">
+    <div class="card-body">
+        <p><strong>Email:</strong> {{ client.email or '-' }}</p>
+        <p><strong>Téléphone:</strong> {{ client.telephone or '-' }}</p>
+        <p><strong>Adresse:</strong> {{ client.adresse or '-' }}</p>
+        <p><strong>Nombre de factures:</strong> {{ client.nb_factures }}</p>
+        <p><strong>CA Total:</strong> {{ client.total_ca|currency }}</p>
+    </div>
+</div>
+{% endblock %}

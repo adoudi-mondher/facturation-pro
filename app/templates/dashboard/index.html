@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}Tableau de bord - Facturation Pro{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-speedometer2"></i> Tableau de bord</h1>
+</div>
+
+<!-- Statistiques -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-muted">Clients</h5>
+                <h2 class="text-primary">{{ stats.nb_clients }}</h2>
+                <a href="{{ url_for('clients.list') }}" class="btn btn-sm btn-outline-primary">
+                    Voir tous <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-muted">Produits</h5>
+                <h2 class="text-success">{{ stats.nb_produits }}</h2>
+                <a href="{{ url_for('produits.list') }}" class="btn btn-sm btn-outline-success">
+                    Voir tous <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-muted">Factures ce mois</h5>
+                <h2 class="text-info">{{ stats.nb_factures_mois }}</h2>
+                <a href="{{ url_for('documents.factures_list') }}" class="btn btn-sm btn-outline-info">
+                    Voir toutes <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-muted">CA ce mois</h5>
+                <h2 class="text-warning">{{ stats.ca_mois|currency }}</h2>
+                <small class="text-muted">TTC</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alertes stock -->
+{% if stats.produits_rupture > 0 or stats.produits_alerte > 0 %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="alert alert-warning" role="alert">
+            <h5><i class="bi bi-exclamation-triangle"></i> Alertes stock</h5>
+            {% if stats.produits_rupture > 0 %}
+            <p class="mb-1">
+                <strong>{{ stats.produits_rupture }}</strong> produit(s) en rupture de stock
+            </p>
+            {% endif %}
+            {% if stats.produits_alerte > 0 %}
+            <p class="mb-0">
+                <strong>{{ stats.produits_alerte }}</strong> produit(s) sous le seuil d'alerte
+            </p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Factures récentes -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-clock-history"></i> Factures récentes</h5>
+                <a href="{{ url_for('documents.factures_list') }}" class="btn btn-sm btn-outline-primary">
+                    Voir toutes
+                </a>
+            </div>
+            <div class="card-body">
+                {% if factures_recentes %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Numéro</th>
+                                <th>Client</th>
+                                <th>Date</th>
+                                <th>Montant TTC</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for facture in factures_recentes %}
+                            <tr>
+                                <td><strong>{{ facture.numero }}</strong></td>
+                                <td>{{ facture.client.nom_complet }}</td>
+                                <td>{{ facture.date_emission|date_fr }}</td>
+                                <td><strong>{{ facture.total_ttc|currency }}</strong></td>
+                                <td>
+                                    {% if facture.statut == 'brouillon' %}
+                                        <span class="badge bg-secondary">Brouillon</span>
+                                    {% elif facture.statut == 'envoyee' %}
+                                        <span class="badge bg-info">Envoyée</span>
+                                    {% elif facture.statut == 'payee' %}
+                                        <span class="badge bg-success">Payée</span>
+                                    {% elif facture.statut == 'annulee' %}
+                                        <span class="badge bg-danger">Annulée</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('documents.view', id=facture.id) }}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted text-center py-4">Aucune facture pour le moment</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

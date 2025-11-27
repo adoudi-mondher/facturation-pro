@@ -1,0 +1,22 @@
+# Core Flask
+Flask==3.0.0
+Flask-SQLAlchemy==3.1.1
+Flask-WTF==1.2.1
+WTForms==3.1.1
+
+# PDF Generation
+reportlab==4.0.7
+Pillow==10.4.0
+
+# Export
+openpyxl==3.1.2
+
+# Utilities
+python-dotenv==1.0.0
+python-dateutil==2.8.2
+
+# Email
+email-validator==2.1.0
+
+# Packaging (pour plus tard)
+# pyinstaller==6.3.0

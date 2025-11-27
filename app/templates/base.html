@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Facturation Pro{% endblock %}</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    <style>
+        :root {
+            --primary-color: #0077BE;
+            --secondary-color: #2C3E2F;
+            --accent-color: #FFC107;
+        }
+        
+        body {
+            min-height: 100vh;
+            background-color: #f8f9fa;
+        }
+        
+        .sidebar {
+            min-height: 100vh;
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 0.75rem 1rem;
+            margin: 0.2rem 0;
+            border-radius: 0.25rem;
+        }
+        
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .sidebar .nav-link i {
+            margin-right: 0.5rem;
+        }
+        
+        .main-content {
+            padding: 2rem;
+        }
+        
+        .card {
+            border: none;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            margin-bottom: 1.5rem;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: #005a8f;
+            border-color: #005a8f;
+        }
+        
+        .badge-warning {
+            background-color: var(--accent-color);
+            color: #000;
+        }
+        
+        .table-hover tbody tr:hover {
+            background-color: rgba(0, 119, 190, 0.05);
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 col-lg-2 px-0 sidebar">
+                <div class="p-3">
+                    <h4 class="text-white mb-4">
+                        <i class="bi bi-receipt"></i> Facturation Pro
+                    </h4>
+                    <nav class="nav flex-column">
+                        <a class="nav-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}" 
+                           href="{{ url_for('main.dashboard') }}">
+                            <i class="bi bi-speedometer2"></i> Tableau de bord
+                        </a>
+                        <a class="nav-link {% if request.endpoint and 'clients' in request.endpoint %}active{% endif %}" 
+                           href="{{ url_for('clients.list') }}">
+                            <i class="bi bi-people"></i> Clients
+                        </a>
+                        <a class="nav-link {% if request.endpoint and 'produits' in request.endpoint %}active{% endif %}" 
+                           href="{{ url_for('produits.list') }}">
+                            <i class="bi bi-box-seam"></i> Produits
+                        </a>
+                        <a class="nav-link {% if 'factures' in request.endpoint|string %}active{% endif %}" 
+                           href="{{ url_for('documents.factures_list') }}">
+                            <i class="bi bi-file-earmark-text"></i> Factures
+                        </a>
+                        <a class="nav-link {% if 'devis' in request.endpoint|string %}active{% endif %}" 
+                           href="{{ url_for('documents.devis_list') }}">
+                            <i class="bi bi-file-earmark-ruled"></i> Devis
+                        </a>
+                        <hr class="text-white">
+                        <a class="nav-link {% if request.endpoint == 'parametres.index' %}active{% endif %}" 
+                           href="{{ url_for('parametres.index') }}">
+                            <i class="bi bi-gear"></i> Paramètres
+                        </a>
+                    </nav>
+                </div>
+            </div>
+            
+            <!-- Main content -->
+            <div class="col-md-10 col-lg-10 main-content">
+                <!-- Flash messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'success' if category == 'success' else 'danger' if category == 'error' else 'info' }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                
+                <!-- Page content -->
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
