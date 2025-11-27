@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% from "components/form_macros.html" import render_field %}
+
+{% block title %}Nouveau client - Facturation Pro{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-person-plus"></i> Nouveau client</h1>
+    <a href="{{ url_for('clients.list') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Retour à la liste
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('clients.create') }}">
+            {{ form.hidden_tag() }}
+            
+            <div class="row">
+                <div class="col-md-12">
+                    {{ render_field(form.type) }}
+                </div>
+            </div>
+            
+            <div class="row" id="champs-particulier">
+                <div class="col-md-6">
+                    {{ render_field(form.prenom, placeholder="Jean") }}
+                </div>
+                <div class="col-md-6">
+                    {{ render_field(form.nom, placeholder="Dupont") }}
+                </div>
+            </div>
+            
+            <div class="row" id="champs-entreprise" style="display: none;">
+                <div class="col-md-12">
+                    {{ render_field(form.raison_sociale, placeholder="Ex: TechCorp SARL") }}
+                </div>
+            </div>
+            
+            <hr class="my-4">
+            
+            <div class="row">
+                <div class="col-md-6">
+                    {{ render_field(form.email, placeholder="client@email.fr") }}
+                </div>
+                <div class="col-md-6">
+                    {{ render_field(form.telephone, placeholder="06 12 34 56 78") }}
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-12">
+                    {{ render_field(form.adresse, placeholder="12 Rue de la République") }}
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-4">
+                    {{ render_field(form.code_postal, placeholder="13001") }}
+                </div>
+                <div class="col-md-5">
+                    {{ render_field(form.ville, placeholder="Marseille") }}
+                </div>
+                <div class="col-md-3">
+                    {{ render_field(form.pays) }}
+                </div>
+            </div>
+            
+            <hr class="my-4">
+            
+            {{ render_field(form.notes, placeholder="Notes internes...") }}
+            
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> Créer le client
+                </button>
+                <a href="{{ url_for('clients.list') }}" class="btn btn-secondary">
+                    Annuler
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Afficher/masquer champs selon type
+document.getElementById('type').addEventListener('change', function() {
+    const isEntreprise = this.value === 'entreprise';
+    document.getElementById('champs-particulier').style.display = isEntreprise ? 'none' : 'flex';
+    document.getElementById('champs-entreprise').style.display = isEntreprise ? 'block' : 'none';
+});
+</script>
+{% endblock %}
