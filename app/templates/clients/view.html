@@ -1,14 +1,74 @@
 {% extends "base.html" %}
 {% block title %}{{ client.nom_complet }} - Facturation Pro{% endblock %}
 {% block content %}
-<h1><i class="bi bi-person"></i> {{ client.nom_complet }}</h1>
-<div class="card">
-    <div class="card-body">
-        <p><strong>Email:</strong> {{ client.email or '-' }}</p>
-        <p><strong>Téléphone:</strong> {{ client.telephone or '-' }}</p>
-        <p><strong>Adresse:</strong> {{ client.adresse or '-' }}</p>
-        <p><strong>Nombre de factures:</strong> {{ client.nb_factures }}</p>
-        <p><strong>CA Total:</strong> {{ client.total_ca|currency }}</p>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-person"></i> {{ client.nom_complet }}</h1>
+    <div>
+        <a href="{{ url_for('clients.edit', id=client.id) }}" class="btn btn-primary">
+            <i class="bi bi-pencil"></i> Modifier
+        </a>
+        <a href="{{ url_for('clients.list') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Retour
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informations</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Type:</strong> {{ 'Entreprise' if client.type == 'entreprise' else 'Particulier' }}</p>
+                {% if client.raison_sociale %}
+                <p><strong>Raison sociale:</strong> {{ client.raison_sociale }}</p>
+                {% endif %}
+                <p><strong>Email:</strong> {{ client.email or '-' }}</p>
+                <p><strong>Téléphone:</strong> {{ client.telephone or '-' }}</p>
+                <p><strong>Adresse:</strong> {{ client.adresse or '-' }}</p>
+                <p><strong>Ville:</strong> {{ client.code_postal or '' }} {{ client.ville or '-' }}</p>
+                <p><strong>Pays:</strong> {{ client.pays }}</p>
+                {% if client.notes %}
+                <p><strong>Notes:</strong><br>{{ client.notes }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-graph-up"></i> Statistiques</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Nombre de factures:</strong> {{ client.nb_factures }}</p>
+                <p><strong>CA Total:</strong> {{ client.total_ca|currency }}</p>
+            </div>
+        </div>
+        
+        {% if factures %}
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-file-earmark-text"></i> Dernières factures</h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    {% for facture in factures %}
+                    <a href="{{ url_for('documents.view', id=facture.id) }}" class="list-group-item list-group-item-action">
+                        <div class="d-flex justify-content-between">
+                            <span><strong>{{ facture.numero }}</strong> - {{ facture.date_emission|date_fr }}</span>
+                            <span class="badge bg-{{ 'success' if facture.statut == 'payee' else 'info' if facture.statut == 'envoyee' else 'secondary' }}">
+                                {{ facture.statut }}
+                            </span>
+                        </div>
+                        <small>{{ facture.total_ttc|currency }}</small>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

@@ -3,6 +3,7 @@ Routes Clients
 """
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from app.models.client import Client
+from app.forms.client_form import ClientForm
 from app.extensions import db
 
 bp = Blueprint('clients', __name__, url_prefix='/clients')
@@ -33,6 +34,23 @@ def list():
                          clients=clients, 
                          search=search)
 
+@bp.route('/create', methods=['GET', 'POST'])
+def create():
+    """Créer un nouveau client"""
+    form = ClientForm()
+    
+    if form.validate_on_submit():
+        client = Client()
+        form.populate_obj(client)
+        
+        db.session.add(client)
+        db.session.commit()
+        
+        flash(f'Client {client.nom_complet} créé avec succès', 'success')
+        return redirect(url_for('clients.view', id=client.id))
+    
+    return render_template('clients/create.html', form=form)
+
 @bp.route('/view/<int:id>')
 def view(id):
     """Voir un client"""
@@ -49,4 +67,34 @@ def view(id):
                          client=client,
                          factures=factures)
 
-# Les routes create, edit, delete seront ajoutées avec les forms
+@bp.route('/edit/<int:id>', methods=['GET', 'POST'])
+def edit(id):
+    """Modifier un client"""
+    client = Client.query.get_or_404(id)
+    form = ClientForm(obj=client)
+    
+    if form.validate_on_submit():
+        form.populate_obj(client)
+        db.session.commit()
+        
+        flash(f'Client {client.nom_complet} modifié avec succès', 'success')
+        return redirect(url_for('clients.view', id=client.id))
+    
+    return render_template('clients/edit.html', form=form, client=client)
+
+@bp.route('/delete/<int:id>', methods=['POST'])
+def delete(id):
+    """Supprimer un client (soft delete)"""
+    client = Client.query.get_or_404(id)
+    
+    # Vérifier qu'il n'a pas de factures
+    if client.documents.count() > 0:
+        flash('Impossible de supprimer un client avec des factures/devis', 'error')
+        return redirect(url_for('clients.view', id=id))
+    
+    # Soft delete : on désactive juste
+    client.actif = False
+    db.session.commit()
+    
+    flash(f'Client {client.nom_complet} désactivé', 'success')
+    return redirect(url_for('clients.list'))
