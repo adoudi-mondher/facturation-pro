@@ -1,21 +1,112 @@
 {% extends "base.html" %}
 {% block title %}{{ produit.designation }} - Facturation Pro{% endblock %}
 {% block content %}
-<h1><i class="bi bi-box-seam"></i> {{ produit.designation }}</h1>
-<div class="card">
-    <div class="card-body">
-        <p><strong>Référence:</strong> {{ produit.reference or '-' }}</p>
-        <p><strong>Prix HT:</strong> {{ produit.prix_ht|currency }}</p>
-        <p><strong>TVA:</strong> {{ produit.taux_tva }}%</p>
-        <p><strong>Prix TTC:</strong> {{ produit.prix_ttc|currency }}</p>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-box-seam"></i> {{ produit.designation }}</h1>
+    <div>
+        <a href="{{ url_for('produits.edit', id=produit.id) }}" class="btn btn-primary">
+            <i class="bi bi-pencil"></i> Modifier
+        </a>
+        <a href="{{ url_for('produits.list') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Retour
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informations</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Référence:</strong> {{ produit.reference or '-' }}</p>
+                <p><strong>Désignation:</strong> {{ produit.designation }}</p>
+                {% if produit.description %}
+                <p><strong>Description:</strong><br>{{ produit.description }}</p>
+                {% endif %}
+                <p><strong>Catégorie:</strong> {{ produit.categorie or '-' }}</p>
+                <p><strong>Unité:</strong> {{ produit.unite }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-currency-euro"></i> Prix</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Prix HT:</strong> {{ produit.prix_ht|currency }}</p>
+                <p><strong>TVA:</strong> {{ produit.taux_tva }}%</p>
+                <p><strong>Prix TTC:</strong> <span class="text-success fs-4">{{ produit.prix_ttc|currency }}</span></p>
+            </div>
+        </div>
+        
         {% if produit.gerer_stock %}
-        <p><strong>Stock actuel:</strong> {{ produit.stock_actuel }}</p>
-        <p><strong>Statut:</strong> 
-            <span class="badge bg-{{ 'danger' if produit.stock_statut == 'rupture' else 'warning' if produit.stock_statut == 'alerte' else 'success' }}">
-                {{ produit.stock_statut }}
-            </span>
-        </p>
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-box"></i> Stock</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Stock actuel:</strong> 
+                    <span class="badge bg-{{ 'danger' if produit.stock_statut == 'rupture' else 'warning' if produit.stock_statut == 'alerte' else 'success' }} fs-6">
+                        {{ produit.stock_actuel }}
+                    </span>
+                </p>
+                <p><strong>Stock minimum:</strong> {{ produit.stock_minimum }}</p>
+                <p><strong>Statut:</strong> 
+                    <span class="badge bg-{{ 'danger' if produit.stock_statut == 'rupture' else 'warning' if produit.stock_statut == 'alerte' else 'success' }}">
+                        {{ produit.stock_statut }}
+                    </span>
+                </p>
+            </div>
+        </div>
         {% endif %}
     </div>
 </div>
+
+{% if mouvements %}
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-clock-history"></i> Historique des mouvements</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Quantité</th>
+                                <th>Stock avant</th>
+                                <th>Stock après</th>
+                                <th>Commentaire</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for mouvement in mouvements %}
+                            <tr>
+                                <td>{{ mouvement.created_at|datetime_fr }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if mouvement.type_mouvement == 'entree' else 'danger' if mouvement.type_mouvement == 'sortie' else 'info' }}">
+                                        {{ mouvement.type_mouvement }}
+                                    </span>
+                                </td>
+                                <td>{{ mouvement.quantite }}</td>
+                                <td>{{ mouvement.stock_avant }}</td>
+                                <td>{{ mouvement.stock_apres }}</td>
+                                <td>{{ mouvement.commentaire or '-' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 {% endblock %}
