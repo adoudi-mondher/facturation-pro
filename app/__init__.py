@@ -31,6 +31,15 @@ def create_app(config_name='default'):
     app.register_blueprint(documents.bp)
     app.register_blueprint(parametres.bp)
     
+    # Route pour servir les fichiers uploadés
+    @app.route('/uploads/<path:filename>')
+    def uploaded_file(filename):
+        """Servir les fichiers uploadés"""
+        import os
+        from flask import send_from_directory
+        upload_folder = app.config['UPLOAD_FOLDER']
+        return send_from_directory(upload_folder, filename)
+    
     # Créer les tables et initialiser les données
     with app.app_context():
         db.create_all()

@@ -5,7 +5,28 @@
 
 <div class="card">
     <div class="card-body">
-        <form method="POST" action="{{ url_for('parametres.save') }}">
+        <form method="POST" action="{{ url_for('parametres.save') }}" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label class="form-label">Logo de l'entreprise</label>
+                {% if entreprise.logo_path %}
+                <div class="mb-2">
+                    <img src="{{ url_for('uploaded_file', filename='logos/' + entreprise.logo_path.split('/')[-1]) }}" 
+                         alt="Logo" 
+                         style="max-height: 100px; border: 1px solid #ddd; padding: 5px; border-radius: 4px;">
+                    <a href="{{ url_for('parametres.delete_logo') }}" 
+                       class="btn btn-sm btn-danger ms-2"
+                       onclick="return confirm('Supprimer le logo ?')">
+                        <i class="bi bi-trash"></i> Supprimer
+                    </a>
+                </div>
+                {% endif %}
+                <input type="file" 
+                       name="logo" 
+                       class="form-control" 
+                       accept="image/png,image/jpeg,image/jpg,image/gif">
+                <small class="text-muted">Formats acceptés : PNG, JPG, GIF - Max 5 Mo</small>
+            </div>
+            
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Nom de l'entreprise *</label>
