@@ -110,9 +110,10 @@ def create_facture():
                     
                     # Gérer le stock si le statut n'est pas brouillon
                     if facture.statut != 'brouillon' and produit.gerer_stock:
-                        stock_avant = produit.stock_actuel or 0
-                        produit.stock_actuel = stock_avant - int(ligne.quantite)
-                        stock_apres = produit.stock_actuel
+                        stock_avant = int(produit.stock_actuel or 0)  # ← Convertir en int
+                        quantite_int = int(ligne.quantite)             # ← Convertir en int
+                        produit.stock_actuel = stock_avant - quantite_int
+                        stock_apres = int(produit.stock_actuel)        # ← Convertir en int
                         
                         # Créer le mouvement de stock
                         mouvement = MouvementStock(
@@ -143,6 +144,133 @@ def create_facture():
             return redirect(url_for('documents.create_facture'))
     
     return render_template('documents/create_facture.html', form=form)
+
+@bp.route('/factures/edit/<int:id>', methods=['GET', 'POST'])
+def edit_facture(id):
+    """Modifier une facture (brouillon ou envoyée uniquement)"""
+    facture = Document.query.get_or_404(id)
+    
+    # Vérifier le statut - payée = non modifiable
+    if facture.statut == 'payee':
+        flash('⚠️ Cette facture est payée. Pour la modifier, créez un avoir.', 'error')
+        return redirect(url_for('documents.view', id=id))
+    
+    # Avertissement si envoyée
+    if facture.statut == 'envoyee':
+        flash('⚠️ Attention : cette facture a déjà été envoyée au client.', 'warning')
+    
+    form = FactureForm(obj=facture)
+    
+    # Charger les clients pour le select
+    clients = Client.query.filter_by(actif=True).order_by(Client.nom).all()
+    form.client_id.choices = [(0, '-- Sélectionner un client --')] + [(c.id, c.nom_complet) for c in clients]
+    
+    if form.validate_on_submit():
+        try:
+            # Annuler les mouvements de stock existants si facture n'était pas brouillon
+            if facture.statut != 'brouillon':
+                for ligne in facture.lignes:
+                    if ligne.produit.gerer_stock:
+                        # Remettre le stock
+                        stock_actuel = int(ligne.produit.stock_actuel or 0)
+                        quantite_rendue = int(ligne.quantite)
+                        ligne.produit.stock_actuel = stock_actuel + quantite_rendue
+            
+            # Supprimer les anciennes lignes
+            LigneDocument.query.filter_by(document_id=facture.id).delete()
+            MouvementStock.query.filter_by(reference_document_id=facture.id).delete()
+            
+            # Mettre à jour les infos de base
+            facture.client_id = form.client_id.data
+            facture.date_emission = form.date_emission.data
+            facture.date_echeance = form.date_echeance.data
+            facture.statut = form.statut.data
+            facture.conditions_paiement = form.conditions_paiement.data
+            facture.notes = form.notes.data
+            
+            # Récupérer les nouvelles lignes depuis le formulaire
+            lignes_data = {}
+            remise_globale = float(request.form.get('remise_globale', 0))
+            
+            for key, value in request.form.items():
+                if key.startswith('lignes[') and value:
+                    parts = key.split('[')
+                    ligne_id = parts[1].rstrip(']')
+                    field_name = parts[2].rstrip(']')
+                    
+                    if ligne_id not in lignes_data:
+                        lignes_data[ligne_id] = {}
+                    
+                    lignes_data[ligne_id][field_name] = value
+            
+            # Créer les nouvelles lignes
+            ordre = 0
+            for ligne_id, ligne_info in lignes_data.items():
+                if 'produit_id' in ligne_info and ligne_info['produit_id']:
+                    produit = Produit.query.get(int(ligne_info['produit_id']))
+                    
+                    if not produit:
+                        continue
+                    
+                    ligne = LigneDocument(
+                        document_id=facture.id,
+                        produit_id=produit.id,
+                        designation=ligne_info.get('designation', produit.designation),
+                        quantite=float(ligne_info.get('quantite', 1)),
+                        prix_unitaire_ht=float(ligne_info.get('prix_unitaire_ht', produit.prix_ht)),
+                        taux_tva=float(ligne_info.get('taux_tva', produit.taux_tva)),
+                        remise_ligne=float(ligne_info.get('remise_ligne', 0)),
+                        ordre=ordre
+                    )
+                    ligne.calculer_total()
+                    db.session.add(ligne)
+                    
+                    # Gérer le stock si le statut n'est pas brouillon
+                    if facture.statut != 'brouillon' and produit.gerer_stock:
+                        stock_avant = produit.stock_actuel or 0
+                        produit.stock_actuel = stock_avant - int(ligne.quantite)
+                        stock_apres = produit.stock_actuel
+                        
+                        # Créer le mouvement de stock
+                        mouvement = MouvementStock(
+                            produit_id=produit.id,
+                            type_mouvement='facture',
+                            quantite=-ligne.quantite,
+                            stock_avant=stock_avant,
+                            stock_apres=stock_apres,
+                            reference_document_id=facture.id,
+                            commentaire=f"Facture {facture.numero} (modifiée)"
+                        )
+                        db.session.add(mouvement)
+                    
+                    ordre += 1
+            
+            # Appliquer la remise globale et calculer les totaux
+            facture.remise_globale = remise_globale
+            facture.calculer_totaux()
+            
+            db.session.commit()
+            
+            flash(f'✅ Facture {facture.numero} modifiée avec succès', 'success')
+            return redirect(url_for('documents.view', id=facture.id))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f'❌ Erreur lors de la modification : {str(e)}', 'error')
+            return redirect(url_for('documents.edit_facture', id=id))
+    
+    # Pré-remplir le formulaire avec les données existantes
+    if request.method == 'GET':
+        form.client_id.data = facture.client_id
+        form.date_emission.data = facture.date_emission
+        form.date_echeance.data = facture.date_echeance
+        form.statut.data = facture.statut
+        form.conditions_paiement.data = facture.conditions_paiement
+        form.notes.data = facture.notes
+    
+    return render_template('documents/edit_facture.html', 
+                         form=form, 
+                         facture=facture)
 
 @bp.route('/devis')
 def devis_list():

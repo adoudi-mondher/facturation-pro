@@ -29,11 +29,19 @@ function chargerProduits() {
         .then(response => response.json())
         .then(data => {
             produitsData = data;
-            // Ajouter une ligne initiale
-            ajouterLigne();
+            
+            // Vérifier s'il y a des lignes existantes (mode édition)
+            // lignesExistantes est défini dans edit_facture.html ou vaut undefined en création
+            const hasExistingLines = typeof lignesExistantes !== 'undefined' && lignesExistantes.length > 0;
+            
+            // Ajouter première ligne SEULEMENT si mode création
+            if (!hasExistingLines) {
+                ajouterLigne();
+            }
         })
         .catch(error => {
             console.error('Erreur chargement produits:', error);
+            alert('Erreur lors du chargement des produits. Veuillez recharger la page.');
         });
 }
 
