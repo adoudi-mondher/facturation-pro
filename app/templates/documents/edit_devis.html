@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block title %}Modifier devis {{ devis.numero }} - Facturation Pro{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>
+        <i class="bi bi-pencil-square"></i> Modifier devis {{ devis.numero }}
+        {% if devis.statut == 'envoye' %}
+        <span class="badge bg-warning">⚠️ Déjà envoyé</span>
+        {% else %}
+        <span class="badge bg-secondary">Brouillon</span>
+        {% endif %}
+    </h1>
+    <a href="{{ url_for('documents.view', id=devis.id) }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Retour au devis
+    </a>
+</div>
+
+<form method="POST" action="{{ url_for('documents.edit_devis', id=devis.id) }}">
+    {{ form.hidden_tag() }}
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-person"></i> Client</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        {{ form.client_id.label(class="form-label") }}
+                        {{ form.client_id(class="form-select") }}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-calendar"></i> Dates</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        {{ form.date_emission.label(class="form-label") }}
+                        {{ form.date_emission(class="form-control", type="date") }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.date_validite.label(class="form-label") }}
+                        {{ form.date_validite(class="form-control", type="date") }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-gear"></i> Paramètres</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        {{ form.statut.label(class="form-label") }}
+                        {{ form.statut(class="form-select") }}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-percent"></i> Remise globale</h5>
+                </div>
+                <div class="card-body">
+                    <div class="input-group">
+                        <input type="number" class="form-control" id="remise_globale" name="remise_globale"
+                               value="{{ devis.remise_globale or 0 }}" min="0" max="100" step="0.01">
+                        <span class="input-group-text">%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-list-ul"></i> Produits / Services</h5>
+            <button type="button" class="btn btn-sm btn-success" id="btn-ajouter-ligne">
+                <i class="bi bi-plus-circle"></i> Ajouter une ligne
+            </button>
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-sm mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 30%;">Produit</th>
+                        <th style="width: 10%;" class="text-end">Qté</th>
+                        <th style="width: 15%;" class="text-end">Prix HT</th>
+                        <th style="width: 10%;" class="text-end">TVA %</th>
+                        <th style="width: 10%;" class="text-end">Remise %</th>
+                        <th style="width: 15%;" class="text-end">Total HT</th>
+                        <th style="width: 10%;" class="text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="lignes-facture"></tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-chat-left-text"></i> Notes</h5>
+                </div>
+                <div class="card-body">
+                    {{ form.notes(class="form-control", rows=4) }}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-calculator"></i> Totaux</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Total HT:</span>
+                        <strong id="display-total-ht">0,00 €</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Total TVA:</span>
+                        <strong id="display-total-tva">0,00 €</strong>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between mb-0">
+                        <span class="fs-5">Total TTC:</span>
+                        <strong class="fs-4 text-success" id="display-total-ttc">0,00 €</strong>
+                    </div>
+                    <input type="hidden" id="total_ht" name="total_ht" value="0">
+                    <input type="hidden" id="total_tva" name="total_tva" value="0">
+                    <input type="hidden" id="total_ttc" name="total_ttc" value="0">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-4 mb-5">
+        <button type="submit" class="btn btn-primary btn-lg">
+            <i class="bi bi-save"></i> Enregistrer les modifications
+        </button>
+        <a href="{{ url_for('documents.view', id=devis.id) }}" class="btn btn-secondary btn-lg">Annuler</a>
+    </div>
+</form>
+
+<script>
+const lignesExistantes = {{ devis.lignes_json | safe }};
+</script>
+<script src="{{ url_for('static', filename='js/facture_form.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const checkProduits = setInterval(function() {
+        if (produitsData && produitsData.length > 0) {
+            clearInterval(checkProduits);
+            if (lignesExistantes && lignesExistantes.length > 0) {
+                lignesExistantes.forEach(function(ligne) {
+                    ligneCounter++;
+                    const ligneId = ligneCounter;
+                    const tbody = document.getElementById('lignes-facture');
+                    const tr = document.createElement('tr');
+                    tr.id = `ligne-${ligneId}`;
+                    tr.dataset.ligne = ligneId;
+                    tr.innerHTML = `
+                        <td>
+                            <select class="form-select form-select-sm produit-select" name="lignes[${ligneId}][produit_id]" data-ligne="${ligneId}" required>
+                                <option value="">-- Sélectionner --</option>
+                                ${produitsData.map(p => `<option value="${p.id}" data-prix="${p.prix_ht}" data-tva="${p.taux_tva}" data-stock="${p.stock_actuel || 'null'}" data-gerer-stock="${p.gerer_stock}" ${p.id === ligne.produit_id ? 'selected' : ''}>${p.reference ? p.reference + ' - ' : ''}${p.designation}</option>`).join('')}
+                            </select>
+                            <input type="hidden" name="lignes[${ligneId}][designation]" class="ligne-designation" value="${ligne.designation}">
+                        </td>
+                        <td><input type="number" class="form-control form-control-sm text-end quantite" name="lignes[${ligneId}][quantite]" data-ligne="${ligneId}" value="${ligne.quantite}" min="0.01" step="0.01" required><small class="text-danger stock-alert" style="display:none;"></small></td>
+                        <td><input type="number" class="form-control form-control-sm text-end prix-unitaire" name="lignes[${ligneId}][prix_unitaire_ht]" data-ligne="${ligneId}" value="${ligne.prix_unitaire_ht}" min="0" step="0.01" required></td>
+                        <td><input type="number" class="form-control form-control-sm text-end taux-tva" name="lignes[${ligneId}][taux_tva]" data-ligne="${ligneId}" value="${ligne.taux_tva}" min="0" max="100" step="0.01" required></td>
+                        <td><input type="number" class="form-control form-control-sm text-end remise-ligne" name="lignes[${ligneId}][remise_ligne]" data-ligne="${ligneId}" value="${ligne.remise_ligne || 0}" min="0" max="100" step="0.01"></td>
+                        <td class="text-end"><span class="total-ligne-ht fw-bold">0.00 €</span></td>
+                        <td class="text-center"><button type="button" class="btn btn-sm btn-danger btn-supprimer-ligne" data-ligne="${ligneId}"><i class="bi bi-trash"></i></button></td>
+                    `;
+                    tbody.appendChild(tr);
+                    const select = tr.querySelector('.produit-select');
+                    const quantite = tr.querySelector('.quantite');
+                    const prix = tr.querySelector('.prix-unitaire');
+                    const tva = tr.querySelector('.taux-tva');
+                    const remise = tr.querySelector('.remise-ligne');
+                    const btnSupprimer = tr.querySelector('.btn-supprimer-ligne');
+                    select.addEventListener('change', function() { onProduitChange(ligneId); });
+                    quantite.addEventListener('input', function() { verifierStock(ligneId); calculerTotalLigne(ligneId); });
+                    prix.addEventListener('input', function() { calculerTotalLigne(ligneId); });
+                    tva.addEventListener('input', function() { calculerTotalLigne(ligneId); });
+                    remise.addEventListener('input', function() { calculerTotalLigne(ligneId); });
+                    btnSupprimer.addEventListener('click', function() { supprimerLigne(ligneId); });
+                    calculerTotalLigne(ligneId);
+                });
+            }
+        }
+    }, 100);
+});
+</script>
+{% endblock %}

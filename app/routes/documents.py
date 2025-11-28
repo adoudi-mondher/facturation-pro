@@ -8,6 +8,7 @@ from app.models.ligne_document import LigneDocument
 from app.models.produit import Produit
 from app.models.mouvement_stock import MouvementStock
 from app.forms.facture_form import FactureForm
+from app.forms.devis_form import DevisForm
 from app.extensions import db
 from datetime import datetime
 
@@ -110,10 +111,9 @@ def create_facture():
                     
                     # Gérer le stock si le statut n'est pas brouillon
                     if facture.statut != 'brouillon' and produit.gerer_stock:
-                        stock_avant = int(produit.stock_actuel or 0)  # ← Convertir en int
-                        quantite_int = int(ligne.quantite)             # ← Convertir en int
-                        produit.stock_actuel = stock_avant - quantite_int
-                        stock_apres = int(produit.stock_actuel)        # ← Convertir en int
+                        stock_avant = produit.stock_actuel or 0
+                        produit.stock_actuel = stock_avant - int(ligne.quantite)
+                        stock_apres = produit.stock_actuel
                         
                         # Créer le mouvement de stock
                         mouvement = MouvementStock(
@@ -172,9 +172,7 @@ def edit_facture(id):
                 for ligne in facture.lignes:
                     if ligne.produit.gerer_stock:
                         # Remettre le stock
-                        stock_actuel = int(ligne.produit.stock_actuel or 0)
-                        quantite_rendue = int(ligne.quantite)
-                        ligne.produit.stock_actuel = stock_actuel + quantite_rendue
+                        ligne.produit.stock_actuel += ligne.quantite
             
             # Supprimer les anciennes lignes
             LigneDocument.query.filter_by(document_id=facture.id).delete()
@@ -293,6 +291,183 @@ def devis_list():
     return render_template('documents/devis_list.html', 
                          devis=devis, 
                          search=search)
+
+@bp.route('/devis/create', methods=['GET', 'POST'])
+def create_devis():
+    """Créer un nouveau devis"""
+    form = DevisForm()
+    
+    # Charger les clients pour le select
+    clients = Client.query.filter_by(actif=True).order_by(Client.nom).all()
+    form.client_id.choices = [(0, '-- Sélectionner un client --')] + [(c.id, c.nom_complet) for c in clients]
+    
+    if form.validate_on_submit():
+        try:
+            # Créer le devis
+            devis = Document(
+                type='devis',
+                client_id=form.client_id.data,
+                date_emission=form.date_emission.data,
+                date_echeance=form.date_validite.data,  # date_validite pour devis
+                statut=form.statut.data,
+                notes=form.notes.data
+            )
+            
+            # Générer le numéro
+            devis.generate_numero()
+            
+            db.session.add(devis)
+            db.session.flush()
+            
+            # Récupérer les lignes (identique aux factures)
+            lignes_data = {}
+            remise_globale = float(request.form.get('remise_globale', 0))
+            
+            for key, value in request.form.items():
+                if key.startswith('lignes[') and value:
+                    parts = key.split('[')
+                    ligne_id = parts[1].rstrip(']')
+                    field_name = parts[2].rstrip(']')
+                    
+                    if ligne_id not in lignes_data:
+                        lignes_data[ligne_id] = {}
+                    
+                    lignes_data[ligne_id][field_name] = value
+            
+            # Créer les lignes (PAS de mouvement de stock pour les devis !)
+            ordre = 0
+            for ligne_id, ligne_info in lignes_data.items():
+                if 'produit_id' in ligne_info and ligne_info['produit_id']:
+                    produit = Produit.query.get(int(ligne_info['produit_id']))
+                    
+                    if not produit:
+                        continue
+                    
+                    ligne = LigneDocument(
+                        document_id=devis.id,
+                        produit_id=produit.id,
+                        designation=ligne_info.get('designation', produit.designation),
+                        quantite=float(ligne_info.get('quantite', 1)),
+                        prix_unitaire_ht=float(ligne_info.get('prix_unitaire_ht', produit.prix_ht)),
+                        taux_tva=float(ligne_info.get('taux_tva', produit.taux_tva)),
+                        remise_ligne=float(ligne_info.get('remise_ligne', 0)),
+                        ordre=ordre
+                    )
+                    ligne.calculer_total()
+                    db.session.add(ligne)
+                    ordre += 1
+            
+            # Appliquer la remise globale et calculer les totaux
+            devis.remise_globale = remise_globale
+            devis.calculer_totaux()
+            
+            db.session.commit()
+            
+            flash(f'Devis {devis.numero} créé avec succès', 'success')
+            return redirect(url_for('documents.devis_list'))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Erreur lors de la création du devis : {str(e)}', 'error')
+            return redirect(url_for('documents.create_devis'))
+    
+    return render_template('documents/create_devis.html', form=form)
+
+@bp.route('/devis/edit/<int:id>', methods=['GET', 'POST'])
+def edit_devis(id):
+    """Modifier un devis (brouillon ou envoyé uniquement)"""
+    devis = Document.query.get_or_404(id)
+    
+    # Vérifier le statut - accepté/refusé = non modifiable
+    if devis.statut in ['accepte', 'refuse']:
+        flash(f'⚠️ Ce devis est {devis.statut}. Impossible de le modifier.', 'error')
+        return redirect(url_for('documents.view', id=id))
+    
+    # Avertissement si envoyé
+    if devis.statut == 'envoye':
+        flash('⚠️ Attention : ce devis a déjà été envoyé au client.', 'warning')
+    
+    form = DevisForm(obj=devis)
+    
+    # Charger les clients
+    clients = Client.query.filter_by(actif=True).order_by(Client.nom).all()
+    form.client_id.choices = [(0, '-- Sélectionner un client --')] + [(c.id, c.nom_complet) for c in clients]
+    
+    if form.validate_on_submit():
+        try:
+            # Supprimer les anciennes lignes
+            LigneDocument.query.filter_by(document_id=devis.id).delete()
+            
+            # Mettre à jour
+            devis.client_id = form.client_id.data
+            devis.date_emission = form.date_emission.data
+            devis.date_echeance = form.date_validite.data
+            devis.statut = form.statut.data
+            devis.notes = form.notes.data
+            
+            # Récupérer les nouvelles lignes
+            lignes_data = {}
+            remise_globale = float(request.form.get('remise_globale', 0))
+            
+            for key, value in request.form.items():
+                if key.startswith('lignes[') and value:
+                    parts = key.split('[')
+                    ligne_id = parts[1].rstrip(']')
+                    field_name = parts[2].rstrip(']')
+                    
+                    if ligne_id not in lignes_data:
+                        lignes_data[ligne_id] = {}
+                    
+                    lignes_data[ligne_id][field_name] = value
+            
+            # Créer les nouvelles lignes
+            ordre = 0
+            for ligne_id, ligne_info in lignes_data.items():
+                if 'produit_id' in ligne_info and ligne_info['produit_id']:
+                    produit = Produit.query.get(int(ligne_info['produit_id']))
+                    
+                    if not produit:
+                        continue
+                    
+                    ligne = LigneDocument(
+                        document_id=devis.id,
+                        produit_id=produit.id,
+                        designation=ligne_info.get('designation', produit.designation),
+                        quantite=float(ligne_info.get('quantite', 1)),
+                        prix_unitaire_ht=float(ligne_info.get('prix_unitaire_ht', produit.prix_ht)),
+                        taux_tva=float(ligne_info.get('taux_tva', produit.taux_tva)),
+                        remise_ligne=float(ligne_info.get('remise_ligne', 0)),
+                        ordre=ordre
+                    )
+                    ligne.calculer_total()
+                    db.session.add(ligne)
+                    ordre += 1
+            
+            # Appliquer la remise globale et calculer les totaux
+            devis.remise_globale = remise_globale
+            devis.calculer_totaux()
+            
+            db.session.commit()
+            
+            flash(f'✅ Devis {devis.numero} modifié avec succès', 'success')
+            return redirect(url_for('documents.view', id=devis.id))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f'❌ Erreur lors de la modification : {str(e)}', 'error')
+            return redirect(url_for('documents.edit_devis', id=id))
+    
+    # Pré-remplir
+    if request.method == 'GET':
+        form.client_id.data = devis.client_id
+        form.date_emission.data = devis.date_emission
+        form.date_validite.data = devis.date_echeance
+        form.statut.data = devis.statut
+        form.notes.data = devis.notes
+    
+    return render_template('documents/edit_devis.html', 
+                         form=form, 
+                         devis=devis)
 
 @bp.route('/view/<int:id>')
 def view(id):

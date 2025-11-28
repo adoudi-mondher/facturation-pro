@@ -28,6 +28,13 @@
             <i class="bi bi-pencil"></i> Modifier
         </a>
         {% endif %}
+
+        <!-- BOUTON MODIFIER DEVIS -->
+        {% if document.type == 'devis' and document.statut in ['brouillon', 'envoye'] %}
+        <a href="{{ url_for('documents.edit_devis', id=document.id) }}" class="btn btn-warning">
+            <i class="bi bi-pencil"></i> Modifier
+        </a>
+        {% endif %}
         
         <!-- BOUTON PDF (à venir en v1.3) -->
         <!-- <a href="#" class="btn btn-primary">
