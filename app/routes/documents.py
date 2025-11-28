@@ -10,7 +10,7 @@ from app.models.mouvement_stock import MouvementStock
 from app.forms.facture_form import FactureForm
 from app.forms.devis_form import DevisForm
 from app.extensions import db
-from datetime import datetime
+from datetime import datetime, timedelta
 
 bp = Blueprint('documents', __name__, url_prefix='/documents')
 
