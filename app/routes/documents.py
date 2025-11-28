@@ -275,22 +275,28 @@ def devis_list():
     """Liste des devis"""
     page = request.args.get('page', 1, type=int)
     search = request.args.get('search', '')
+    statut = request.args.get('statut', '')  # ← AJOUTER
     
     query = Document.query.filter_by(type='devis')
     
     if search:
-        query = query.filter(
+        query = query.join(Document.client).filter(
             db.or_(
-                Document.numero.ilike(f'%{search}%')
+                Document.numero.ilike(f'%{search}%'),
+                Document.client.has(Client.nom.ilike(f'%{search}%'))  # ← Chercher aussi dans le nom du client
             )
         )
+    
+    if statut:  # ← AJOUTER
+        query = query.filter_by(statut=statut)
     
     devis = query.order_by(Document.date_emission.desc())\
         .paginate(page=page, per_page=20, error_out=False)
     
     return render_template('documents/devis_list.html', 
                          devis=devis, 
-                         search=search)
+                         search=search,
+                         statut=statut)  # ← AJOUTER
 
 @bp.route('/devis/create', methods=['GET', 'POST'])
 def create_devis():
@@ -474,3 +480,70 @@ def view(id):
     """Voir un document"""
     document = Document.query.get_or_404(id)
     return render_template('documents/view.html', document=document)
+
+@bp.route('/devis/<int:id>/convert-to-facture', methods=['POST'])
+def convert_devis_to_facture(id):
+    """Convertir un devis en facture"""
+    devis = Document.query.get_or_404(id)
+    
+    # Vérifier que c'est bien un devis
+    if devis.type != 'devis':
+        flash('❌ Ce document n\'est pas un devis', 'error')
+        return redirect(url_for('documents.view', id=id))
+    
+    # Vérifier le statut
+    if devis.statut == 'refuse':
+        flash('❌ Impossible de convertir un devis refusé', 'error')
+        return redirect(url_for('documents.view', id=id))
+    
+    try:
+        # Créer la facture
+        facture = Document(
+            type='facture',
+            client_id=devis.client_id,
+            date_emission=datetime.now().date(),
+            date_echeance=(datetime.now() + timedelta(days=30)).date(),
+            statut='brouillon',
+            conditions_paiement='Paiement à 30 jours',
+            notes=f"Facture créée depuis le devis {devis.numero}\n\n{devis.notes or ''}",
+            remise_globale=devis.remise_globale
+        )
+        
+        # Générer le numéro
+        facture.generate_numero()
+        db.session.add(facture)
+        db.session.flush()
+        
+        # Copier les lignes
+        for ligne_devis in devis.lignes:
+            ligne_facture = LigneDocument(
+                document_id=facture.id,
+                produit_id=ligne_devis.produit_id,
+                designation=ligne_devis.designation,
+                quantite=ligne_devis.quantite,
+                prix_unitaire_ht=ligne_devis.prix_unitaire_ht,
+                taux_tva=ligne_devis.taux_tva,
+                remise_ligne=ligne_devis.remise_ligne,
+                ordre=ligne_devis.ordre
+            )
+            ligne_facture.calculer_total()
+            db.session.add(ligne_facture)
+            
+            # Gérer le stock (la facture est en brouillon, donc pas de mouvement pour l'instant)
+            # Le stock sera impacté quand on changera le statut en "envoyée" ou "payée"
+        
+        # Calculer les totaux
+        facture.calculer_totaux()
+        
+        # Marquer le devis comme accepté
+        devis.statut = 'accepte'
+        
+        db.session.commit()
+        
+        flash(f'✅ Facture {facture.numero} créée depuis le devis {devis.numero}', 'success')
+        return redirect(url_for('documents.view', id=facture.id))
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'❌ Erreur lors de la conversion : {str(e)}', 'error')
+        return redirect(url_for('documents.view', id=id))
