@@ -1,13 +1,186 @@
 {% extends "base.html" %}
+
 {% block title %}{{ document.numero }} - Facturation Pro{% endblock %}
+
 {% block content %}
-<h1><i class="bi bi-file-earmark-text"></i> {{ document.numero }}</h1>
-<div class="card">
-    <div class="card-body">
-        <p><strong>Client:</strong> {{ document.client.nom_complet }}</p>
-        <p><strong>Date:</strong> {{ document.date_emission|date_fr }}</p>
-        <p><strong>Total TTC:</strong> {{ document.total_ttc|currency }}</p>
-        <p><strong>Statut:</strong> {{ document.statut }}</p>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>
+        <i class="bi bi-file-earmark-text"></i> {{ document.numero }}
+        {% if document.statut == 'brouillon' %}
+        <span class="badge bg-secondary">Brouillon</span>
+        {% elif document.statut == 'envoyee' %}
+        <span class="badge bg-info">Envoyée</span>
+        {% elif document.statut == 'payee' %}
+        <span class="badge bg-success">Payée</span>
+        {% endif %}
+    </h1>
+    
+    <!-- BOUTONS D'ACTION -->
+    <div>
+        <a href="{{ url_for('documents.factures_list' if document.type == 'facture' else 'documents.devis_list') }}" 
+           class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Retour
+        </a>
+        
+        <!-- BOUTON MODIFIER (brouillon ou envoyée uniquement) -->
+        {% if document.type == 'facture' and document.statut in ['brouillon', 'envoyee'] %}
+        <a href="{{ url_for('documents.edit_facture', id=document.id) }}" class="btn btn-warning">
+            <i class="bi bi-pencil"></i> Modifier
+        </a>
+        {% endif %}
+        
+        <!-- BOUTON PDF (à venir en v1.3) -->
+        <!-- <a href="#" class="btn btn-primary">
+            <i class="bi bi-file-pdf"></i> PDF
+        </a> -->
     </div>
 </div>
+
+<div class="row">
+    <!-- COLONNE GAUCHE : Infos client -->
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-person"></i> Client</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-2">
+                    <strong>{{ document.client.nom_complet }}</strong>
+                </p>
+                {% if document.client.email %}
+                <p class="mb-2">
+                    <i class="bi bi-envelope"></i> {{ document.client.email }}
+                </p>
+                {% endif %}
+                {% if document.client.telephone %}
+                <p class="mb-2">
+                    <i class="bi bi-telephone"></i> {{ document.client.telephone }}
+                </p>
+                {% endif %}
+                {% if document.client.adresse %}
+                <p class="mb-0">
+                    <i class="bi bi-geo-alt"></i> 
+                    {{ document.client.adresse }}<br>
+                    {{ document.client.code_postal }} {{ document.client.ville }}
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- COLONNE DROITE : Infos document -->
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-calendar"></i> Informations</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-2">
+                    <strong>Date d'émission :</strong> {{ document.date_emission.strftime('%d/%m/%Y') }}
+                </p>
+                {% if document.date_echeance %}
+                <p class="mb-2">
+                    <strong>Date d'échéance :</strong> {{ document.date_echeance.strftime('%d/%m/%Y') }}
+                </p>
+                {% endif %}
+                {% if document.conditions_paiement %}
+                <p class="mb-2">
+                    <strong>Conditions :</strong> {{ document.conditions_paiement }}
+                </p>
+                {% endif %}
+                <p class="mb-0">
+                    <strong>Statut :</strong> 
+                    {% if document.statut == 'brouillon' %}
+                    <span class="badge bg-secondary">Brouillon</span>
+                    {% elif document.statut == 'envoyee' %}
+                    <span class="badge bg-info">Envoyée</span>
+                    {% elif document.statut == 'payee' %}
+                    <span class="badge bg-success">Payée</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- LIGNES DE PRODUITS -->
+<div class="card mb-3">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-list-ul"></i> Produits / Services</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-sm mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Désignation</th>
+                        <th class="text-end">Quantité</th>
+                        <th class="text-end">Prix HT</th>
+                        <th class="text-end">TVA %</th>
+                        <th class="text-end">Remise %</th>
+                        <th class="text-end">Total HT</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ligne in document.lignes %}
+                    <tr>
+                        <td>{{ ligne.designation }}</td>
+                        <td class="text-end">{{ ligne.quantite }}</td>
+                        <td class="text-end">{{ ligne.prix_unitaire_ht|currency }}</td>
+                        <td class="text-end">{{ ligne.taux_tva }} %</td>
+                        <td class="text-end">{{ ligne.remise_ligne or 0 }} %</td>
+                        <td class="text-end"><strong>{{ ligne.total_ht|currency }}</strong></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- TOTAUX -->
+<div class="row">
+    <div class="col-md-8">
+        {% if document.notes %}
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-chat-left-text"></i> Notes</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-0">{{ document.notes }}</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-calculator"></i> Totaux</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Total HT :</span>
+                    <strong>{{ document.total_ht|currency }}</strong>
+                </div>
+                {% if document.remise_globale and document.remise_globale > 0 %}
+                <div class="d-flex justify-content-between mb-2 text-danger">
+                    <span>Remise globale :</span>
+                    <strong>- {{ document.remise_globale }} %</strong>
+                </div>
+                {% endif %}
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Total TVA :</span>
+                    <strong>{{ document.total_tva|currency }}</strong>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between mb-0">
+                    <span class="fs-5">Total TTC :</span>
+                    <strong class="fs-4 text-success">{{ document.total_ttc|currency }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}

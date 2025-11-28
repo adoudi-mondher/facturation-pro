@@ -97,3 +97,16 @@ class Document(db.Model, TimestampMixin):
             Parametre.set_valeur('numero_facture_compteur', str(compteur + 1))
         else:
             Parametre.set_valeur('numero_devis_compteur', str(compteur + 1))
+
+    @property
+    def lignes_json(self):
+        """Retourne les lignes au format JSON pour le JavaScript"""
+        import json
+        return json.dumps([{
+            'produit_id': ligne.produit_id,
+            'designation': ligne.designation,
+            'quantite': float(ligne.quantite),
+            'prix_unitaire_ht': float(ligne.prix_unitaire_ht),
+            'taux_tva': float(ligne.taux_tva),
+            'remise_ligne': float(ligne.remise_ligne) if ligne.remise_ligne else 0
+        } for ligne in self.lignes])
