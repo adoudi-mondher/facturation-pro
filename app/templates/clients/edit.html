@@ -86,8 +86,35 @@
 // Afficher/masquer champs selon type
 document.getElementById('type').addEventListener('change', function() {
     const isEntreprise = this.value === 'entreprise';
-    document.getElementById('champs-particulier').style.display = isEntreprise ? 'none' : 'flex';
-    document.getElementById('champs-entreprise').style.display = isEntreprise ? 'block' : 'none';
+    
+    // Champs particulier
+    const champsParticulier = document.getElementById('champs-particulier');
+    const prenomInput = document.getElementById('prenom');
+    const nomInput = document.getElementById('nom');
+    
+    // Champs entreprise
+    const champsEntreprise = document.getElementById('champs-entreprise');
+    const raisonSocialeInput = document.getElementById('raison_sociale');
+    
+    if (isEntreprise) {
+        // Masquer particulier et désactiver required
+        champsParticulier.style.display = 'none';
+        prenomInput.removeAttribute('required');
+        nomInput.removeAttribute('required');
+        
+        // Afficher entreprise et activer required
+        champsEntreprise.style.display = 'block';
+        raisonSocialeInput.setAttribute('required', 'required');
+    } else {
+        // Afficher particulier et activer required
+        champsParticulier.style.display = 'flex';
+        nomInput.setAttribute('required', 'required');
+        // prenom pas obligatoire
+        
+        // Masquer entreprise et désactiver required
+        champsEntreprise.style.display = 'none';
+        raisonSocialeInput.removeAttribute('required');
+    }
 });
 </script>
 {% endblock %}
