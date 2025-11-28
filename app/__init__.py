@@ -14,7 +14,7 @@ def create_app(config_name='default'):
     Returns:
         Application Flask configurée
     """
-    app = Flask(__name__)
+    app = Flask(__name__, static_folder='../static')
     
     # Charger la configuration
     app.config.from_object(config[config_name])
@@ -24,12 +24,13 @@ def create_app(config_name='default'):
     db.init_app(app)
     
     # Enregistrer les blueprints (routes)
-    from app.routes import main, clients, produits, documents, parametres
+    from app.routes import main, clients, produits, documents, parametres, api
     app.register_blueprint(main.bp)
     app.register_blueprint(clients.bp)
     app.register_blueprint(produits.bp)
     app.register_blueprint(documents.bp)
     app.register_blueprint(parametres.bp)
+    app.register_blueprint(api.bp)
     
     # Route pour servir les fichiers uploadés
     @app.route('/uploads/<path:filename>')
