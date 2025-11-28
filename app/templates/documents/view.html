@@ -36,11 +36,10 @@
         </a>
         {% endif %}
 
-        <!-- BOUTON CONVERTIR EN FACTURE (pour devis uniquement) -->
+        <!-- BOUTON CONVERTIR EN FACTURE -->
         {% if document.type == 'devis' and document.statut != 'refuse' %}
         <form method="POST" action="{{ url_for('documents.convert_devis_to_facture', id=document.id) }}" style="display: inline;">
-            {{ csrf_token() }}
-            <button type="submit" class="btn btn-success" onclick="return confirm('Convertir ce devis en facture ?')">
+            <button type="submit" class="btn btn-success" onclick="return confirm('Convertir ce devis en facture ?\n\nLe devis sera marqué comme accepté.')">
                 <i class="bi bi-arrow-right-circle"></i> Convertir en facture
             </button>
         </form>
