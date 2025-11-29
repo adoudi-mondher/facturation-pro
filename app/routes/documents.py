@@ -1,16 +1,19 @@
 """
 Routes Documents (Factures et Devis)
 """
-from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file
+from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file, current_app
 from app.models.document import Document
 from app.models.client import Client
 from app.models.ligne_document import LigneDocument
 from app.models.produit import Produit
 from app.models.mouvement_stock import MouvementStock
+from app.models.entreprise import Entreprise
+from app.services.pdf_service import PDFService
 from app.forms.facture_form import FactureForm
 from app.forms.devis_form import DevisForm
 from app.extensions import db
 from datetime import datetime, timedelta
+import os
 
 bp = Blueprint('documents', __name__, url_prefix='/documents')
 
@@ -485,25 +488,26 @@ def facture_pdf(id):
         return redirect(url_for('documents.view', id=id))
     
     try:
-        # Récupérer les infos entreprise
+       # Récupérer les infos entreprise
+        ent = Entreprise.get_instance()
         entreprise = {
-            'nom_entreprise': Parametre.get_valeur('nom_entreprise', 'Mon Entreprise'),
-            'adresse': Parametre.get_valeur('adresse_entreprise', ''),
-            'code_postal': Parametre.get_valeur('code_postal_entreprise', ''),
-            'ville': Parametre.get_valeur('ville_entreprise', ''),
-            'telephone': Parametre.get_valeur('telephone_entreprise', ''),
-            'email': Parametre.get_valeur('email_entreprise', ''),
-            'siret': Parametre.get_valeur('siret', ''),
-            'tva_intra': Parametre.get_valeur('tva_intra', ''),
-            'mentions_legales': Parametre.get_valeur('mentions_legales', ''),
-            'logo_path': Parametre.get_valeur('logo_path', '')
+            'nom_entreprise': ent.nom or 'Mon Entreprise',
+            'adresse': ent.adresse or '',
+            'code_postal': ent.code_postal or '',
+            'ville': ent.ville or '',
+            'telephone': ent.telephone or '',
+            'email': ent.email or '',
+            'siret': ent.siret or '',
+            'tva_intra': ent.tva_intra or '',
+            'mentions_legales': ent.mentions_legales or '',
+            'logo_path': ent.logo_path or ''
         }
         
         # Générer le PDF
         pdf_service = PDFService(facture, entreprise)
         
-        # Chemin du PDF
-        pdf_dir = os.path.join('data', 'pdf')
+        # Chemin du PDF (chemin absolu depuis la racine du projet)
+        pdf_dir = os.path.join(os.path.dirname(current_app.root_path), 'data', 'pdf')
         os.makedirs(pdf_dir, exist_ok=True)
         pdf_filename = f"facture_{facture.numero.replace('/', '_')}.pdf"
         pdf_path = os.path.join(pdf_dir, pdf_filename)
@@ -538,24 +542,25 @@ def devis_pdf(id):
     
     try:
         # Récupérer les infos entreprise
+        ent = Entreprise.get_instance()
         entreprise = {
-            'nom_entreprise': Parametre.get_valeur('nom_entreprise', 'Mon Entreprise'),
-            'adresse': Parametre.get_valeur('adresse_entreprise', ''),
-            'code_postal': Parametre.get_valeur('code_postal_entreprise', ''),
-            'ville': Parametre.get_valeur('ville_entreprise', ''),
-            'telephone': Parametre.get_valeur('telephone_entreprise', ''),
-            'email': Parametre.get_valeur('email_entreprise', ''),
-            'siret': Parametre.get_valeur('siret', ''),
-            'tva_intra': Parametre.get_valeur('tva_intra', ''),
-            'mentions_legales': Parametre.get_valeur('mentions_legales', ''),
-            'logo_path': Parametre.get_valeur('logo_path', '')
+            'nom_entreprise': ent.nom or 'Mon Entreprise',
+            'adresse': ent.adresse or '',
+            'code_postal': ent.code_postal or '',
+            'ville': ent.ville or '',
+            'telephone': ent.telephone or '',
+            'email': ent.email or '',
+            'siret': ent.siret or '',
+            'tva_intra': ent.tva_intra or '',
+            'mentions_legales': ent.mentions_legales or '',
+            'logo_path': ent.logo_path or ''
         }
         
         # Générer le PDF
         pdf_service = PDFService(devis, entreprise)
         
-        # Chemin du PDF
-        pdf_dir = os.path.join('data', 'pdf')
+        # Chemin du PDF (chemin absolu depuis la racine du projet)
+        pdf_dir = os.path.join(os.path.dirname(current_app.root_path), 'data', 'pdf')
         os.makedirs(pdf_dir, exist_ok=True)
         pdf_filename = f"devis_{devis.numero.replace('/', '_')}.pdf"
         pdf_path = os.path.join(pdf_dir, pdf_filename)

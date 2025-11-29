@@ -162,12 +162,21 @@ class PDFService:
             date_label2 = "Date d'échéance :" if self.document.type == 'facture' else "Valable jusqu'au :"
             right_col.append(Paragraph(f"{date_label2} {self.document.date_echeance.strftime('%d/%m/%Y')}", style_subtitle))
         
-        # Statut avec badge coloré
+        # Statut avec badge coloré et mapping des libellés
+        statut_map = {
+            'brouillon': 'Brouillon',
+            'envoyee': 'Envoyée',
+            'payee': 'Payée',
+            'envoye': 'Envoyé',
+            'accepte': 'Accepté',
+            'refuse': 'Refusé'
+        }
+
         statut_color = self.COLOR_SECONDARY
-        if self.document.statut == 'payee' or self.document.statut == 'accepte':
+        if self.document.statut in ['payee', 'accepte']:
             statut_color = self.COLOR_SUCCESS
-        
-        statut_text = self.document.statut.capitalize()
+
+        statut_text = statut_map.get(self.document.statut, self.document.statut.capitalize())
         right_col.append(Spacer(1, 3*mm))
         right_col.append(Paragraph(f'<font color="{statut_color.hexval()}"><b>{statut_text}</b></font>', style_subtitle))
         
