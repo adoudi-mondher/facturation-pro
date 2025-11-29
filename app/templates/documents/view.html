@@ -45,10 +45,23 @@
         </form>
         {% endif %}
         
-        <!-- BOUTON PDF (à venir en v1.3) -->
-        <!-- <a href="#" class="btn btn-primary">
-            <i class="bi bi-file-pdf"></i> PDF
-        </a> -->
+       <!-- BOUTON PDF FACTURE -->
+        {% if document.type == 'facture' %}
+        <a href="{{ url_for('documents.facture_pdf', id=document.id) }}" 
+        class="btn btn-danger" 
+        target="_blank">
+            <i class="bi bi-file-pdf"></i> Télécharger PDF
+        </a>
+        {% endif %}
+
+        <!-- BOUTON PDF DEVIS -->
+        {% if document.type == 'devis' %}
+        <a href="{{ url_for('documents.devis_pdf', id=document.id) }}" 
+        class="btn btn-danger" 
+        target="_blank">
+            <i class="bi bi-file-pdf"></i> Télécharger PDF
+        </a>
+        {% endif %}
     </div>
 </div>
 

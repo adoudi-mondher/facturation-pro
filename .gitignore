@@ -47,3 +47,6 @@ Thumbs.db
 #Architecture specific
 ARCHITECTURE_TECHNIQUE.txt
 CAHIER_DES_CHARGES.txt
+
+# Generated PDFs
+data/pdf/*.pdf

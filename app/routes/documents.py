@@ -1,7 +1,7 @@
 """
 Routes Documents (Factures et Devis)
 """
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file
 from app.models.document import Document
 from app.models.client import Client
 from app.models.ligne_document import LigneDocument
@@ -474,6 +474,110 @@ def edit_devis(id):
     return render_template('documents/edit_devis.html', 
                          form=form, 
                          devis=devis)
+
+@bp.route('/factures/<int:id>/pdf')
+def facture_pdf(id):
+    """Générer le PDF d'une facture"""
+    facture = Document.query.get_or_404(id)
+    
+    if facture.type != 'facture':
+        flash('❌ Ce document n\'est pas une facture', 'error')
+        return redirect(url_for('documents.view', id=id))
+    
+    try:
+        # Récupérer les infos entreprise
+        entreprise = {
+            'nom_entreprise': Parametre.get_valeur('nom_entreprise', 'Mon Entreprise'),
+            'adresse': Parametre.get_valeur('adresse_entreprise', ''),
+            'code_postal': Parametre.get_valeur('code_postal_entreprise', ''),
+            'ville': Parametre.get_valeur('ville_entreprise', ''),
+            'telephone': Parametre.get_valeur('telephone_entreprise', ''),
+            'email': Parametre.get_valeur('email_entreprise', ''),
+            'siret': Parametre.get_valeur('siret', ''),
+            'tva_intra': Parametre.get_valeur('tva_intra', ''),
+            'mentions_legales': Parametre.get_valeur('mentions_legales', ''),
+            'logo_path': Parametre.get_valeur('logo_path', '')
+        }
+        
+        # Générer le PDF
+        pdf_service = PDFService(facture, entreprise)
+        
+        # Chemin du PDF
+        pdf_dir = os.path.join('data', 'pdf')
+        os.makedirs(pdf_dir, exist_ok=True)
+        pdf_filename = f"facture_{facture.numero.replace('/', '_')}.pdf"
+        pdf_path = os.path.join(pdf_dir, pdf_filename)
+        
+        # Générer
+        pdf_service.generate(pdf_path)
+        
+        # Sauvegarder le chemin en BDD
+        facture.pdf_path = pdf_path
+        db.session.commit()
+        
+        # Envoyer le fichier
+        return send_file(
+            pdf_path,
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name=pdf_filename
+        )
+        
+    except Exception as e:
+        flash(f'❌ Erreur lors de la génération du PDF : {str(e)}', 'error')
+        return redirect(url_for('documents.view', id=id))
+
+@bp.route('/devis/<int:id>/pdf')
+def devis_pdf(id):
+    """Générer le PDF d'un devis"""
+    devis = Document.query.get_or_404(id)
+    
+    if devis.type != 'devis':
+        flash('❌ Ce document n\'est pas un devis', 'error')
+        return redirect(url_for('documents.view', id=id))
+    
+    try:
+        # Récupérer les infos entreprise
+        entreprise = {
+            'nom_entreprise': Parametre.get_valeur('nom_entreprise', 'Mon Entreprise'),
+            'adresse': Parametre.get_valeur('adresse_entreprise', ''),
+            'code_postal': Parametre.get_valeur('code_postal_entreprise', ''),
+            'ville': Parametre.get_valeur('ville_entreprise', ''),
+            'telephone': Parametre.get_valeur('telephone_entreprise', ''),
+            'email': Parametre.get_valeur('email_entreprise', ''),
+            'siret': Parametre.get_valeur('siret', ''),
+            'tva_intra': Parametre.get_valeur('tva_intra', ''),
+            'mentions_legales': Parametre.get_valeur('mentions_legales', ''),
+            'logo_path': Parametre.get_valeur('logo_path', '')
+        }
+        
+        # Générer le PDF
+        pdf_service = PDFService(devis, entreprise)
+        
+        # Chemin du PDF
+        pdf_dir = os.path.join('data', 'pdf')
+        os.makedirs(pdf_dir, exist_ok=True)
+        pdf_filename = f"devis_{devis.numero.replace('/', '_')}.pdf"
+        pdf_path = os.path.join(pdf_dir, pdf_filename)
+        
+        # Générer
+        pdf_service.generate(pdf_path)
+        
+        # Sauvegarder le chemin en BDD
+        devis.pdf_path = pdf_path
+        db.session.commit()
+        
+        # Envoyer le fichier
+        return send_file(
+            pdf_path,
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name=pdf_filename
+        )
+        
+    except Exception as e:
+        flash(f'❌ Erreur lors de la génération du PDF : {str(e)}', 'error')
+        return redirect(url_for('documents.view', id=id))
 
 @bp.route('/view/<int:id>')
 def view(id):
