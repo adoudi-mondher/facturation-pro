@@ -37,6 +37,15 @@ def save():
     entreprise.site_web = request.form.get('site_web', '')
     entreprise.taux_tva_defaut = float(request.form.get('taux_tva_defaut', 20.0))
     entreprise.mentions_legales = request.form.get('mentions_legales', '')
+
+    # Configuration SMTP
+    entreprise.smtp_server = request.form.get('smtp_server', '')
+    entreprise.smtp_port = int(request.form.get('smtp_port', 587))
+    entreprise.smtp_user = request.form.get('smtp_user', '')
+    smtp_password = request.form.get('smtp_password', '')
+    if smtp_password:
+        entreprise.smtp_password = smtp_password
+    entreprise.smtp_use_tls = request.form.get('smtp_use_tls') == 'on'
     
     # Gérer l'upload du logo
     if 'logo' in request.files:

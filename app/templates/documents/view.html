@@ -62,6 +62,22 @@
             <i class="bi bi-file-pdf"></i> Télécharger PDF
         </a>
         {% endif %}
+
+        <!-- BOUTON ENVOYER EMAIL FACTURE -->
+        {% if document.type == 'facture' %}
+        <a href="{{ url_for('documents.send_facture_email', id=document.id) }}" 
+        class="btn btn-success">
+            <i class="bi bi-envelope"></i> Envoyer par email
+        </a>
+        {% endif %}
+
+        <!-- BOUTON ENVOYER EMAIL DEVIS -->
+        {% if document.type == 'devis' %}
+        <a href="{{ url_for('documents.send_devis_email', id=document.id) }}" 
+        class="btn btn-success">
+            <i class="bi bi-envelope"></i> Envoyer par email
+        </a>
+        {% endif %}
     </div>
 </div>
 

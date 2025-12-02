@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Envoyer {{ 'la facture' if document.type == 'facture' else 'le devis' }} - Facturation Pro{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>
+        <i class="bi bi-envelope"></i> 
+        Envoyer {{ 'la facture' if document.type == 'facture' else 'le devis' }} {{ document.numero }}
+    </h1>
+    <a href="{{ url_for('documents.view', id=document.id) }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Retour
+    </a>
+</div>
+
+<div class="row">
+    <!-- COLONNE GAUCHE : Formulaire -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-envelope-fill"></i> Informations d'envoi</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <!-- Email destinataire -->
+                    <div class="mb-3">
+                        <label for="destinataire" class="form-label">
+                            <i class="bi bi-person"></i> Destinataire *
+                        </label>
+                        <input type="email" 
+                               class="form-control" 
+                               id="destinataire" 
+                               name="destinataire"
+                               value="{{ email_default }}" 
+                               required
+                               placeholder="client@example.com">
+                        <small class="text-muted">Email du client (pré-rempli si disponible)</small>
+                    </div>
+                    
+                    <!-- Message personnalisé -->
+                    <div class="mb-3">
+                        <label for="message" class="form-label">
+                            <i class="bi bi-chat-left-text"></i> Message personnalisé (optionnel)
+                        </label>
+                        <textarea class="form-control" 
+                                  id="message" 
+                                  name="message"
+                                  rows="6"
+                                  placeholder="Ajoutez un message personnalisé qui sera affiché dans l'email..."></textarea>
+                        <small class="text-muted">
+                            Ce message sera affiché en évidence dans l'email envoyé au client.
+                        </small>
+                    </div>
+                    
+                    <!-- Alerte PDF -->
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Le PDF sera joint automatiquement</strong> à l'email.
+                        {% if not document.pdf_path %}
+                        <br><span class="text-danger">⚠️ PDF non généré. <a href="{{ url_for('documents.facture_pdf' if document.type == 'facture' else 'documents.devis_pdf', id=document.id) }}">Générer le PDF</a> d'abord.</span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Boutons -->
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-send"></i> Envoyer l'email
+                        </button>
+                        <a href="{{ url_for('documents.view', id=document.id) }}" class="btn btn-secondary btn-lg">
+                            Annuler
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- COLONNE DROITE : Aperçu -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-eye"></i> Aperçu</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Document :</strong> {{ document.numero }}</p>
+                <p><strong>Client :</strong> {{ document.client.nom_complet }}</p>
+                <p><strong>Date :</strong> {{ document.date_emission.strftime('%d/%m/%Y') }}</p>
+                <p><strong>Montant :</strong> <span class="text-success fs-4">{{ document.total_ttc|currency }}</span></p>
+                <hr>
+                <p class="text-muted small">
+                    <i class="bi bi-paperclip"></i> 
+                    Le PDF sera joint à l'email
+                </p>
+                {% if document.statut == 'brouillon' %}
+                <div class="alert alert-warning small">
+                    <i class="bi bi-info-circle"></i>
+                    Le statut passera automatiquement en "{{ 'Envoyée' if document.type == 'facture' else 'Envoyé' }}" après l'envoi.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Configuration SMTP -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-gear"></i> Configuration</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small">
+                    Pour modifier la configuration email (SMTP), rendez-vous dans 
+                    <a href="{{ url_for('parametres.index') }}">Paramètres</a>.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

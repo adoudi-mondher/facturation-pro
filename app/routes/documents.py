@@ -13,6 +13,8 @@ from app.forms.facture_form import FactureForm
 from app.forms.devis_form import DevisForm
 from app.extensions import db
 from datetime import datetime, timedelta
+from app.services.email_service import EmailService
+from flask_mail import Mail
 import os
 
 bp = Blueprint('documents', __name__, url_prefix='/documents')
@@ -656,3 +658,147 @@ def convert_devis_to_facture(id):
         db.session.rollback()
         flash(f'❌ Erreur lors de la conversion : {str(e)}', 'error')
         return redirect(url_for('documents.view', id=id))
+
+@bp.route('/factures/<int:id>/send-email', methods=['GET', 'POST'])
+def send_facture_email(id):
+    """Envoyer une facture par email"""
+    facture = Document.query.get_or_404(id)
+    
+    if facture.type != 'facture':
+        flash('❌ Ce document n\'est pas une facture', 'error')
+        return redirect(url_for('documents.view', id=id))
+    
+    # GET : Afficher le formulaire
+    if request.method == 'GET':
+        # Email par défaut du client
+        email_default = facture.client.email or ''
+        return render_template('documents/send_email.html', 
+                             document=facture,
+                             email_default=email_default)
+    
+    # POST : Envoyer l'email
+    try:
+        destinataire = request.form.get('destinataire', '').strip()
+        message_perso = request.form.get('message', '').strip()
+        
+        if not destinataire:
+            flash('❌ Veuillez saisir une adresse email', 'error')
+            return redirect(url_for('documents.send_facture_email', id=id))
+        
+        # Vérifier que le PDF existe
+        if not facture.pdf_path or not os.path.exists(facture.pdf_path):
+            flash('❌ PDF non trouvé. Veuillez générer le PDF avant d\'envoyer', 'error')
+            return redirect(url_for('documents.view', id=id))
+        
+        # Récupérer les infos entreprise
+        from app.models.entreprise import Entreprise
+        entreprise = Entreprise.get_instance()
+        
+        # Configurer Flask-Mail
+        current_app.config['MAIL_SERVER'] = entreprise.smtp_server
+        current_app.config['MAIL_PORT'] = entreprise.smtp_port or 587
+        current_app.config['MAIL_USE_TLS'] = entreprise.smtp_use_tls if entreprise.smtp_use_tls is not None else True
+        current_app.config['MAIL_USERNAME'] = entreprise.smtp_user
+        current_app.config['MAIL_PASSWORD'] = entreprise.smtp_password
+        current_app.config['MAIL_DEFAULT_SENDER'] = entreprise.smtp_user or entreprise.email
+        
+        # Vérifier la configuration
+        if not entreprise.smtp_server or not entreprise.smtp_user:
+            flash('❌ Configuration email incomplète. Veuillez configurer les paramètres SMTP.', 'error')
+            return redirect(url_for('parametres.index'))
+        
+        # Envoyer l'email
+        success, message = EmailService.send_document_email(
+            document=facture,
+            destinataire=destinataire,
+            message_personnalise=message_perso,
+            entreprise=entreprise
+        )
+        
+        if success:
+            # Mettre à jour le statut si c'était un brouillon
+            if facture.statut == 'brouillon':
+                facture.statut = 'envoyee'
+                db.session.commit()
+            
+            flash(f'✅ {message}', 'success')
+            return redirect(url_for('documents.view', id=id))
+        else:
+            flash(f'❌ {message}', 'error')
+            return redirect(url_for('documents.send_facture_email', id=id))
+            
+    except Exception as e:
+        flash(f'❌ Erreur lors de l\'envoi : {str(e)}', 'error')
+        return redirect(url_for('documents.send_facture_email', id=id))
+
+@bp.route('/devis/<int:id>/send-email', methods=['GET', 'POST'])
+def send_devis_email(id):
+    """Envoyer un devis par email"""
+    devis = Document.query.get_or_404(id)
+    
+    if devis.type != 'devis':
+        flash('❌ Ce document n\'est pas un devis', 'error')
+        return redirect(url_for('documents.view', id=id))
+    
+    # GET : Afficher le formulaire
+    if request.method == 'GET':
+        # Email par défaut du client
+        email_default = devis.client.email or ''
+        return render_template('documents/send_email.html', 
+                             document=devis,
+                             email_default=email_default)
+    
+    # POST : Envoyer l'email
+    try:
+        destinataire = request.form.get('destinataire', '').strip()
+        message_perso = request.form.get('message', '').strip()
+        
+        if not destinataire:
+            flash('❌ Veuillez saisir une adresse email', 'error')
+            return redirect(url_for('documents.send_devis_email', id=id))
+        
+        # Vérifier que le PDF existe
+        if not devis.pdf_path or not os.path.exists(devis.pdf_path):
+            flash('❌ PDF non trouvé. Veuillez générer le PDF avant d\'envoyer', 'error')
+            return redirect(url_for('documents.view', id=id))
+        
+        # Récupérer les infos entreprise
+        from app.models.entreprise import Entreprise
+        entreprise = Entreprise.get_instance()
+        
+        # Configurer Flask-Mail
+        current_app.config['MAIL_SERVER'] = entreprise.smtp_server
+        current_app.config['MAIL_PORT'] = entreprise.smtp_port or 587
+        current_app.config['MAIL_USE_TLS'] = entreprise.smtp_use_tls if entreprise.smtp_use_tls is not None else True
+        current_app.config['MAIL_USERNAME'] = entreprise.smtp_user
+        current_app.config['MAIL_PASSWORD'] = entreprise.smtp_password
+        current_app.config['MAIL_DEFAULT_SENDER'] = entreprise.smtp_user or entreprise.email
+        
+        # Vérifier la configuration
+        if not entreprise.smtp_server or not entreprise.smtp_user:
+            flash('❌ Configuration email incomplète. Veuillez configurer les paramètres SMTP.', 'error')
+            return redirect(url_for('parametres.index'))
+        
+        # Envoyer l'email
+        success, message = EmailService.send_document_email(
+            document=devis,
+            destinataire=destinataire,
+            message_personnalise=message_perso,
+            entreprise=entreprise
+        )
+        
+        if success:
+            # Mettre à jour le statut si c'était un brouillon
+            if devis.statut == 'brouillon':
+                devis.statut = 'envoye'
+                db.session.commit()
+            
+            flash(f'✅ {message}', 'success')
+            return redirect(url_for('documents.view', id=id))
+        else:
+            flash(f'❌ {message}', 'error')
+            return redirect(url_for('documents.send_devis_email', id=id))
+            
+    except Exception as e:
+        flash(f'❌ Erreur lors de l\'envoi : {str(e)}', 'error')
+        return redirect(url_for('documents.send_devis_email', id=id))
