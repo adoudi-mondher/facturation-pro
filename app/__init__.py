@@ -31,6 +31,8 @@ def create_app(config_name='default'):
     app.register_blueprint(documents.bp)
     app.register_blueprint(parametres.bp)
     app.register_blueprint(api.bp)
+    from app.routes import exports
+    app.register_blueprint(exports.bp)
     
     # Route pour servir les fichiers uploadés
     @app.route('/uploads/<path:filename>')

@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Export Excel - Facturation Pro{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-file-excel"></i> Export Excel</h1>
+    <a href="{{ url_for('exports.index') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Retour
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">Export Excel avec statistiques</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-success">
+                    <i class="bi bi-file-excel"></i>
+                    <strong>Fichier Excel professionnel</strong><br>
+                    Export avec mise en forme, 2 feuilles (Liste des factures + Statistiques).
+                </div>
+                
+                <form method="POST">
+                    <!-- Période -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="date_debut" class="form-label">Date de début</label>
+                            <input type="date" 
+                                   class="form-control" 
+                                   id="date_debut" 
+                                   name="date_debut"
+                                   value="{{ date_debut_default }}">
+                            <small class="text-muted">Laisser vide pour toutes les factures</small>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="date_fin" class="form-label">Date de fin</label>
+                            <input type="date" 
+                                   class="form-control" 
+                                   id="date_fin" 
+                                   name="date_fin"
+                                   value="{{ date_fin_default }}">
+                            <small class="text-muted">Laisser vide pour toutes les factures</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Bouton -->
+                    <button type="submit" class="btn btn-success btn-lg">
+                        <i class="bi bi-download"></i> Télécharger Excel
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Contenu</h5>
+            </div>
+            <div class="card-body">
+                <h6><strong>Feuille 1 : Factures</strong></h6>
+                <ul class="text-muted small">
+                    <li>Numéro de facture</li>
+                    <li>Date</li>
+                    <li>Client</li>
+                    <li>Statut</li>
+                    <li>Montants (HT, TVA, TTC)</li>
+                    <li>Ligne de total</li>
+                </ul>
+                
+                <h6><strong>Feuille 2 : Statistiques</strong></h6>
+                <ul class="text-muted small">
+                    <li>Nombre de factures par statut</li>
+                    <li>Chiffre d'affaires total</li>
+                    <li>CA payé</li>
+                    <li>CA restant</li>
+                </ul>
+                
+                <h6><strong>Mise en forme</strong></h6>
+                <p class="text-muted small">
+                    ✅ Couleurs professionnelles<br>
+                    ✅ Bordures et alignements<br>
+                    ✅ Format monétaire<br>
+                    ✅ Filtres automatiques
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
