@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Exports - Facturation Pro{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-download"></i> Exports</h1>
+</div>
+
+<div class="row">
+    <!-- EXPORT FEC -->
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-file-text"></i> Export FEC</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">
+                    <strong>Fichier des Écritures Comptables</strong><br>
+                    Format obligatoire pour les contrôles fiscaux en France.
+                </p>
+                <ul class="text-sm">
+                    <li>Conforme réglementation française</li>
+                    <li>Pour votre comptable</li>
+                    <li>Import dans logiciels compta</li>
+                    <li>Format texte avec séparateur |</li>
+                </ul>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('exports.export_fec') }}" class="btn btn-primary w-100">
+                    <i class="bi bi-file-earmark-text"></i> Exporter FEC
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- EXPORT EXCEL -->
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-file-excel"></i> Export Excel</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">
+                    <strong>Fichier Excel avec statistiques</strong><br>
+                    Pour vos analyses et rapports.
+                </p>
+                <ul class="text-sm">
+                    <li>Liste détaillée des factures</li>
+                    <li>Statistiques CA</li>
+                    <li>Mise en forme professionnelle</li>
+                    <li>Prêt pour graphiques</li>
+                </ul>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('exports.export_excel') }}" class="btn btn-success w-100">
+                    <i class="bi bi-file-excel"></i> Exporter Excel
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- EXPORT CSV -->
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-filetype-csv"></i> Export CSV</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">
+                    <strong>Fichier CSV universel</strong><br>
+                    Compatible avec tous les logiciels.
+                </p>
+                <ul class="text-sm">
+                    <li>Format universel</li>
+                    <li>Import dans tous logiciels</li>
+                    <li>Léger et rapide</li>
+                    <li>Séparateur point-virgule</li>
+                </ul>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('exports.export_csv') }}" class="btn btn-info w-100">
+                    <i class="bi bi-filetype-csv"></i> Exporter CSV
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AIDE -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-question-circle"></i> Aide</h5>
+    </div>
+    <div class="card-body">
+        <h6><strong>Quel format choisir ?</strong></h6>
+        
+        <p><strong>📋 FEC</strong> : Si vous devez fournir vos écritures à votre comptable ou pour un contrôle fiscal.</p>
+        
+        <p><strong>📊 Excel</strong> : Pour analyser vos données, créer des graphiques, ou faire des tableaux croisés dynamiques.</p>
+        
+        <p><strong>📄 CSV</strong> : Pour importer dans un autre logiciel (CRM, ERP, etc.) ou si vous n'avez pas Excel.</p>
+        
+        <hr>
+        
+        <p class="text-muted mb-0">
+            <i class="bi bi-info-circle"></i>
+            Tous les exports peuvent être filtrés par période (date de début et fin).
+        </p>
+    </div>
+</div>
+
+{% endblock %}

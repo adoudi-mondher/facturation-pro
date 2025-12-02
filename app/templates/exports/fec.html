@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Export FEC - Facturation Pro{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-file-text"></i> Export FEC</h1>
+    <a href="{{ url_for('exports.index') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Retour
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Fichier des Écritures Comptables</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i>
+                    <strong>Format FEC</strong><br>
+                    Le FEC (Fichier des Écritures Comptables) est le format obligatoire pour les contrôles fiscaux en France.
+                    Il contient toutes vos écritures comptables au format normalisé.
+                </div>
+                
+                <form method="POST">
+                    <!-- Période -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="date_debut" class="form-label">Date de début</label>
+                            <input type="date" 
+                                   class="form-control" 
+                                   id="date_debut" 
+                                   name="date_debut"
+                                   value="{{ date_debut_default }}">
+                            <small class="text-muted">Début de l'exercice (par défaut : 1er janvier)</small>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="date_fin" class="form-label">Date de fin</label>
+                            <input type="date" 
+                                   class="form-control" 
+                                   id="date_fin" 
+                                   name="date_fin"
+                                   value="{{ date_fin_default }}">
+                            <small class="text-muted">Fin de l'exercice (par défaut : aujourd'hui)</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Bouton -->
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="bi bi-download"></i> Générer le FEC
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informations</h5>
+            </div>
+            <div class="card-body">
+                <h6><strong>Format du fichier</strong></h6>
+                <p class="text-muted small">
+                    Le fichier généré sera au format texte (.txt) avec séparateur pipe (|).
+                </p>
+                
+                <h6><strong>Nom du fichier</strong></h6>
+                <p class="text-muted small">
+                    Format : <code>SIRETFECYYYYMMDDYYYYMMDD.txt</code><br>
+                    Exemple : <code>12345678900012FEC2025010120251231.txt</code>
+                </p>
+                
+                <h6><strong>Contenu</strong></h6>
+                <p class="text-muted small">
+                    Le fichier contient vos factures de vente converties en écritures comptables selon le plan comptable français.
+                </p>
+                
+                <h6><strong>Utilisation</strong></h6>
+                <ul class="text-muted small">
+                    <li>Envoi à votre expert-comptable</li>
+                    <li>Import dans logiciel comptable</li>
+                    <li>Contrôle fiscal</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

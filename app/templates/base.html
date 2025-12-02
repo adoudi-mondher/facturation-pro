@@ -107,6 +107,10 @@
                            href="{{ url_for('documents.devis_list') }}">
                             <i class="bi bi-file-earmark-ruled"></i> Devis
                         </a>
+                        <a class="nav-link {% if 'exports' in request.endpoint|string %}active{% endif %}" 
+                            href="{{ url_for('exports.index') }}">
+                            <i class="bi bi-download"></i> Exports
+                        </a>
                         <hr class="text-white">
                         <a class="nav-link {% if request.endpoint == 'parametres.index' %}active{% endif %}" 
                            href="{{ url_for('parametres.index') }}">
