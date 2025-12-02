@@ -1,4 +1,9 @@
 {% extends "base.html" %}
+{% set statut_map = {
+    'brouillon': 'Brouillon',
+    'envoyee': 'Envoyée',
+    'payee': 'Payée'
+} %}
 {% block title %}Factures - Facturation Pro{% endblock %}
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -32,7 +37,7 @@
                         <td><strong>{{ facture.total_ttc|currency }}</strong></td>
                         <td>
                             <span class="badge bg-{{ 'secondary' if facture.statut == 'brouillon' else 'info' if facture.statut == 'envoyee' else 'success' if facture.statut == 'payee' else 'danger' }}">
-                                {{ facture.statut|capitalize }}
+                                {{ statut_map.get(facture.statut, facture.statut.capitalize()) }}
                             </span>
                         </td>
                         <td>

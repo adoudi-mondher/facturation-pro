@@ -23,6 +23,13 @@ class Entreprise(db.Model, TimestampMixin):
     taux_tva_defaut = db.Column(db.Numeric(5, 2), default=20.00)
     mentions_legales = db.Column(db.Text)
     cgv = db.Column(db.Text)
+
+    # Configuration SMTP pour envoi d'emails
+    smtp_server = db.Column(db.String(200))
+    smtp_port = db.Column(db.Integer, default=587)
+    smtp_user = db.Column(db.String(200))
+    smtp_password = db.Column(db.String(500))
+    smtp_use_tls = db.Column(db.Boolean, default=True)
     
     def __repr__(self):
         return f'<Entreprise {self.nom}>'

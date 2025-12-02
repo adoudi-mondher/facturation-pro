@@ -134,10 +134,10 @@ class PDFService:
         
         # Infos entreprise
         company_info = f"""<b>{self.entreprise.get('nom_entreprise', 'Entreprise')}</b><br/>
-{self.entreprise.get('adresse', '')}<br/>
-{self.entreprise.get('code_postal', '')} {self.entreprise.get('ville', '')}<br/>
-{self.entreprise.get('telephone', '')}<br/>
-{self.entreprise.get('email', '')}"""
+        {self.entreprise.get('adresse', '')}<br/>
+        {self.entreprise.get('code_postal', '')} {self.entreprise.get('ville', '')}<br/>
+        {self.entreprise.get('telephone', '')}<br/>
+        {self.entreprise.get('email', '')}"""
         
         if self.entreprise.get('siret'):
             company_info += f"<br/>SIRET: {self.entreprise.get('siret')}"
