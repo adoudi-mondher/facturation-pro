@@ -1,0 +1,102 @@
+===============================================
+    EASY FACTURE v1.5.0
+    Logiciel de facturation simple et efficace
+===============================================
+
+Par : Mondher ADOUDI - Sidr Valley AI
+Contact : adoudi@mondher.ch
+
+-----------------------------------------------
+🚀 DEMARRAGE RAPIDE
+-----------------------------------------------
+
+WINDOWS :
+  1. Double-cliquez sur EasyFacture.exe
+  2. Le navigateur s'ouvre automatiquement
+  3. Commencez à facturer !
+
+MAC :
+  1. Double-cliquez sur EasyFacture.command
+  2. Si "Non identifié" → Clic droit → Ouvrir
+  3. Le navigateur s'ouvre automatiquement
+  4. Commencez à facturer !
+
+LINUX :
+  1. Ouvrir un terminal
+  2. Tapez : sudo ./install.sh
+  3. Tapez : easy-facture
+  4. Ouvrir : http://localhost:5000
+
+-----------------------------------------------
+📚 CE QUE VOUS POUVEZ FAIRE
+-----------------------------------------------
+
+✅ Gérer vos clients
+✅ Créer vos produits/services
+✅ Générer des factures
+✅ Créer des devis
+✅ Convertir devis en facture
+✅ Générer des PDF professionnels
+✅ Envoyer par email
+✅ Exporter FEC (comptable)
+✅ Exporter Excel (analyse)
+✅ Exporter CSV (universel)
+✅ Gérer les stocks
+✅ Suivre les paiements
+
+-----------------------------------------------
+❓ BESOIN D'AIDE ?
+-----------------------------------------------
+
+Email : adoudi@mondher.ch
+
+FAQ Rapide :
+
+Q: Comment arrêter l'application ?
+R: Fermez la fenêtre du terminal/console
+
+Q: Mes données sont où ?
+R: Dans le dossier "data/"
+
+Q: Je peux l'utiliser hors ligne ?
+R: OUI ! Aucune connexion Internet nécessaire
+
+Q: C'est sécurisé ?
+R: OUI ! Toutes vos données restent sur VOTRE ordinateur
+
+Q: Je peux utiliser sur plusieurs PC ?
+R: OUI ! Copiez le dossier complet
+
+-----------------------------------------------
+💡 CONSEILS
+-----------------------------------------------
+
+• Faites des sauvegardes du dossier "data/"
+• Configurez votre SMTP pour l'envoi d'emails
+• Personnalisez vos paramètres entreprise
+• Ajoutez votre logo
+
+-----------------------------------------------
+🎯 PREMIER PAS
+-----------------------------------------------
+
+1. Paramètres → Remplir vos infos entreprise
+2. Clients → Ajouter votre premier client
+3. Produits → Ajouter vos produits/services
+4. Factures → Créer votre première facture !
+
+-----------------------------------------------
+📞 SUPPORT
+-----------------------------------------------
+
+Email : adoudi@mondher.ch
+Délai réponse : 24-48h
+
+-----------------------------------------------
+
+© 2025 Sidr Valley AI - Tous droits réservés
+Version 1.5.0 - Décembre 2025
+
+Merci d'utiliser Easy Facture ! 🎉
+
+===============================================

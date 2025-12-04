@@ -1,0 +1,44 @@
+# ===============================================
+# Easy Facture - Docker Compose
+# Par Mondher ADOUDI - Sidr Valley AI
+# Version 1.5.0
+# ===============================================
+
+version: '3.8'
+
+services:
+  easy-facture:
+    build: .
+    container_name: easy-facture
+    image: easy-facture:1.5.0
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    environment:
+      - FLASK_ENV=production
+      - TZ=Europe/Paris
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - easy-facture-network
+    labels:
+      - "com.easyfacture.description=Easy Facture - Logiciel de facturation"
+      - "com.easyfacture.version=1.5.0"
+      - "com.easyfacture.maintainer=Mondher ADOUDI <adoudi@mondher.ch>"
+
+networks:
+  easy-facture-network:
+    driver: bridge
+
+volumes:
+  data:
+    driver: local
+  logs:
+    driver: local
