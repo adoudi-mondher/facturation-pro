@@ -10,6 +10,7 @@ build/
 
 # Virtual Environment
 venv/
+venv_build/
 env/
 ENV/
 
@@ -43,6 +44,8 @@ Thumbs.db
 # Backups
 *.backup
 *.bak
+.backup_personal_data/
+packaging/windows/.backup_personal_data/
 
 #Architecture specific
 ARCHITECTURE_TECHNIQUE.txt
@@ -50,3 +53,7 @@ CAHIER_DES_CHARGES.txt
 
 # Generated PDFs
 data/pdf/*.pdf
+
+# License files (personal licenses)
+license_*.txt
+.personal_backup/
