@@ -44,46 +44,100 @@ def check_license():
     """
     Verifie la licence avant de demarrer
     Mode gracieux : ne bloque pas si probleme de licence en dev
-    
+
+    Validation en 2 etapes :
+    1. Validation locale (toujours)
+    2. Validation API (une fois par jour si connexion internet)
+
     Returns:
         bool: True si OK ou mode dev, False si licence invalide en prod
     """
     if not ENABLE_LICENSE_CHECK:
         print("ATTENTION Verification de licence DESACTIVEE (mode dev)")
         return True
-    
+
     try:
         from app.utils.license import LicenseManager
-        
+
         manager = LicenseManager()
-        valid, message = manager.validate_license()
-        
-        if valid:
-            print(f"OK {message}")
-            return True
-        else:
+
+        # ========================================
+        # ETAPE 1: Validation LOCALE (toujours)
+        # ========================================
+        valid_local, message = manager.validate_license()
+
+        if not valid_local:
             print(f"\n{'='*60}")
             print("ERREUR LICENCE INVALIDE")
             print("="*60)
             print(f"Raison: {message}\n")
-            
+
             # En mode developpement, on continue quand meme
             if os.environ.get('FLASK_ENV') == 'development':
                 print("ATTENTION Mode developpement : demarrage autorise")
                 return True
-            
+
             # En production, on demande une licence
             print("Veuillez entrer votre cle de licence.")
             print("="*60 + "\n")
-            
+
             # Tenter activation
             return attempt_activation(manager, message)
-    
+
+        # Licence valide localement
+        print(f"OK {message}")
+
+        # ========================================
+        # ETAPE 2: Validation API (periodique)
+        # ========================================
+        try:
+            from app.utils.trial_client import trial_client
+
+            # Fichier pour tracker le dernier check
+            last_check_file = Path("data/.last_api_check")
+
+            # Verifier si on doit checker l'API (une fois par jour)
+            if trial_client.should_check_online(last_check_file):
+                print("Verification en ligne de la licence...")
+
+                # Charger la licence
+                license_file = Path("data/license.key")
+                if license_file.exists():
+                    license_key = license_file.read_text(encoding='utf-8').strip()
+                    machine_id = manager.get_machine_id()
+
+                    # Appeler l'API
+                    is_valid_online, msg_online, data = trial_client.validate_license_online(
+                        license_key, machine_id
+                    )
+
+                    if is_valid_online is False:
+                        # Licence revoquee cote serveur
+                        print(f"\nERREUR {msg_online}")
+                        print("Votre licence a ete revoquee.")
+                        return False
+
+                    elif is_valid_online is True:
+                        # Licence valide en ligne aussi
+                        print(f"OK Validation en ligne reussie")
+                        trial_client.mark_checked(last_check_file)
+
+                    # is_valid_online is None = pas de connexion, on continue
+
+        except ImportError:
+            # Module trial_client pas installe, on skip la validation API
+            pass
+        except Exception as e:
+            # Erreur lors de la validation API (pas grave, on continue)
+            print(f"ATTENTION Validation en ligne impossible: {e}")
+
+        return True
+
     except ImportError:
         print("ATTENTION Module de licence non installe")
         print("   pip install cryptography")
         return True  # Continuer sans licence
-    
+
     except Exception as e:
         print(f"ATTENTION Erreur verification licence: {e}")
         return True  # Continuer quand meme (mode gracieux)
@@ -113,44 +167,119 @@ def attempt_activation(manager, error_msg):
 
         # Afficher le Machine ID dans la popup
         messagebox.showinfo(
-            "Machine ID - Facturation Pro",
+            "Machine ID - EasyFacture",
             f"Votre Machine ID (pour obtenir une licence) :\n\n{machine_id}\n\n"
             f"Envoyez ce code a votre fournisseur pour recevoir votre licence."
         )
 
-        messagebox.showwarning(
-            "Licence Requise - Facturation Pro",
-            f"{error_msg}\n\nVeuillez entrer votre cle de licence."
+        # Proposer essai gratuit OU activation manuelle
+        choice = messagebox.askyesnocancel(
+            "Activation - EasyFacture",
+            f"{error_msg}\n\n"
+            "Que souhaitez-vous faire ?\n\n"
+            "OUI : Essai GRATUIT 30 jours (automatique)\n"
+            "NON : J'ai deja une licence a activer\n"
+            "ANNULER : Quitter"
         )
 
-        license_key = simpledialog.askstring(
-            "Activation de Facturation Pro",
-            "Cle de licence:",
-            parent=root
-        )
+        if choice is True:
+            # ========================================
+            # ESSAI GRATUIT (automatique via API)
+            # ========================================
+            email = simpledialog.askstring(
+                "Essai Gratuit - EasyFacture",
+                "Entrez votre email pour obtenir votre essai gratuit de 30 jours :",
+                parent=root
+            )
 
-        if license_key:
-            # Sauvegarder
-            if manager.save_license(license_key):
-                # Valider
-                valid, msg = manager.validate_license()
-                if valid:
-                    messagebox.showinfo(
-                        "Succes",
-                        "OK Licence activee avec succes!\n\n" + msg
+            if email and email.strip():
+                # Importer le client API
+                try:
+                    from app.utils.trial_client import trial_client
+
+                    # Afficher un message de chargement
+                    print("Demande de licence d'essai en cours...")
+
+                    # Appeler l'API
+                    success, message, license_key = trial_client.request_trial_license(
+                        email=email.strip(),
+                        machine_id=machine_id
                     )
-                    root.destroy()
-                    return True
+
+                    if success and license_key:
+                        # Sauvegarder la licence obtenue
+                        if manager.save_license(license_key):
+                            # Valider
+                            valid, msg = manager.validate_license()
+                            if valid:
+                                messagebox.showinfo(
+                                    "Succes !",
+                                    f"OK {message}\n\n{msg}\n\n"
+                                    f"Vous pouvez maintenant utiliser EasyFacture pendant 30 jours !"
+                                )
+                                root.destroy()
+                                return True
+                            else:
+                                messagebox.showerror(
+                                    "Erreur",
+                                    f"Licence recue mais invalide:\n{msg}"
+                                )
+                        else:
+                            messagebox.showerror(
+                                "Erreur",
+                                "Impossible de sauvegarder la licence"
+                            )
+                    else:
+                        messagebox.showerror(
+                            "Erreur",
+                            f"Impossible d'obtenir la licence d'essai:\n\n{message}\n\n"
+                            f"Verifiez votre connexion internet ou contactez le support."
+                        )
+
+                except ImportError:
+                    messagebox.showerror(
+                        "Erreur",
+                        "Module 'requests' non installe.\n\n"
+                        "Installez-le avec: pip install requests"
+                    )
+
+        elif choice is False:
+            # ========================================
+            # ACTIVATION MANUELLE (comme avant)
+            # ========================================
+            messagebox.showwarning(
+                "Licence Requise - EasyFacture",
+                "Veuillez entrer votre cle de licence."
+            )
+
+            license_key = simpledialog.askstring(
+                "Activation de EasyFacture",
+                "Cle de licence:",
+                parent=root
+            )
+
+            if license_key:
+                # Sauvegarder
+                if manager.save_license(license_key):
+                    # Valider
+                    valid, msg = manager.validate_license()
+                    if valid:
+                        messagebox.showinfo(
+                            "Succes",
+                            "OK Licence activee avec succes!\n\n" + msg
+                        )
+                        root.destroy()
+                        return True
+                    else:
+                        messagebox.showerror(
+                            "Erreur",
+                            f"ERREUR Licence invalide:\n{msg}"
+                        )
                 else:
                     messagebox.showerror(
                         "Erreur",
-                        f"ERREUR Licence invalide:\n{msg}"
+                        "Impossible de sauvegarder la licence"
                     )
-            else:
-                messagebox.showerror(
-                    "Erreur",
-                    "Impossible de sauvegarder la licence"
-                )
 
         root.destroy()
         return False
