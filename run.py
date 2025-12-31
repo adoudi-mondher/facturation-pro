@@ -12,7 +12,30 @@ import sys
 import webbrowser
 import threading
 import time
+from pathlib import Path
 from app import create_app
+
+# Creer .env depuis .env.example si n'existe pas
+def ensure_env_file():
+    """Cree le fichier .env depuis .env.example si necessaire"""
+    env_file = Path('.env')
+    env_example = Path('.env.example')
+
+    if not env_file.exists() and env_example.exists():
+        print("Initialisation du fichier de configuration...")
+        import shutil
+        shutil.copy(env_example, env_file)
+        print("OK Fichier .env cree")
+    elif not env_file.exists() and not env_example.exists():
+        # Creer un .env minimal
+        print("Creation fichier de configuration minimal...")
+        env_file.write_text(
+            "# Configuration de l'application\n"
+            "SECRET_KEY=\n"
+            "DATABASE_URI=sqlite:///data/facturation.db\n",
+            encoding='utf-8'
+        )
+        print("OK Fichier .env cree")
 
 # Configuration de la protection
 ENABLE_LICENSE_CHECK = True  # Mettre a True pour activer
@@ -69,33 +92,43 @@ def check_license():
 def attempt_activation(manager, error_msg):
     """
     Tente d'activer l'application avec une nouvelle licence
-    
+
     Args:
         manager: Instance de LicenseManager
         error_msg: Message d'erreur a afficher
-    
+
     Returns:
         bool: Succes de l'activation
     """
+    # Obtenir et afficher le Machine ID
+    machine_id = manager.get_machine_id()
+
     try:
         # Tentative avec tkinter (interface graphique)
         import tkinter as tk
         from tkinter import messagebox, simpledialog
-        
+
         root = tk.Tk()
         root.withdraw()
-        
+
+        # Afficher le Machine ID dans la popup
+        messagebox.showinfo(
+            "Machine ID - Facturation Pro",
+            f"Votre Machine ID (pour obtenir une licence) :\n\n{machine_id}\n\n"
+            f"Envoyez ce code a votre fournisseur pour recevoir votre licence."
+        )
+
         messagebox.showwarning(
             "Licence Requise - Facturation Pro",
             f"{error_msg}\n\nVeuillez entrer votre cle de licence."
         )
-        
+
         license_key = simpledialog.askstring(
             "Activation de Facturation Pro",
             "Cle de licence:",
             parent=root
         )
-        
+
         if license_key:
             # Sauvegarder
             if manager.save_license(license_key):
@@ -118,17 +151,23 @@ def attempt_activation(manager, error_msg):
                     "Erreur",
                     "Impossible de sauvegarder la licence"
                 )
-        
+
         root.destroy()
         return False
-        
+
     except ImportError:
         # Fallback console si pas de tkinter
         print("\n" + "="*60)
+        print("VOTRE MACHINE ID")
+        print("="*60)
+        print(f"\n{machine_id}\n")
+        print("Envoyez ce code a votre fournisseur pour recevoir votre licence.")
+        print("="*60)
+        print()
         print("ACTIVATION CONSOLE")
         print("="*60)
         license_key = input("Entrez votre cle de licence: ").strip()
-        
+
         if license_key:
             if manager.save_license(license_key):
                 valid, msg = manager.validate_license()
@@ -137,7 +176,7 @@ def attempt_activation(manager, error_msg):
                     return True
                 else:
                     print(f"ERREUR {msg}\n")
-        
+
         return False
 
 
@@ -151,20 +190,31 @@ def open_browser(port=5000):
 
 def main():
     """Lance l'application desktop"""
-    print("=" * 60)
-    print("DEMARRAGE DE FACTURATION PRO v1.6")
-    print("=" * 60)
-    print()
-    
-    # Verification de la licence
-    if ENABLE_LICENSE_CHECK:
-        print("Verification de la licence...")
-        if not check_license():
-            print("\nERREUR Impossible de demarrer sans licence valide.")
-            print("\nPour obtenir une licence, contactez votre fournisseur.")
-            input("\nAppuyez sur Entree pour quitter...")
-            sys.exit(1)
+    try:
+        print("=" * 60)
+        print("DEMARRAGE DE FACTURATION PRO v1.6")
+        print("=" * 60)
         print()
+
+        # Assurer que .env existe
+        ensure_env_file()
+        print()
+
+        # Verification de la licence
+        if ENABLE_LICENSE_CHECK:
+            print("Verification de la licence...")
+            if not check_license():
+                print("\nERREUR Impossible de demarrer sans licence valide.")
+                print("\nPour obtenir une licence, contactez votre fournisseur.")
+                input("\nAppuyez sur Entree pour quitter...")
+                sys.exit(1)
+            print()
+    except Exception as e:
+        print(f"\nERREUR CRITIQUE lors du demarrage: {e}")
+        import traceback
+        traceback.print_exc()
+        input("\nAppuyez sur Entree pour quitter...")
+        sys.exit(1)
     
     # Creer l'application Flask
     try:
