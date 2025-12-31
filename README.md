@@ -1,8 +1,8 @@
-# 📊 Facturation Pro
+# 📊 Easy Facture
 
-Application desktop de facturation professionnelle - Version 1.0
+Application desktop de facturation professionnelle - Version 1.6
 
-## 🚀 Installation
+## Installation
 
 ### 1. Prérequis
 - Python 3.11 ou supérieur
@@ -33,7 +33,7 @@ cp .env.example .env
 # Éditer .env si nécessaire (optionnel pour démarrer)
 ```
 
-## 🎯 Lancement de l'application
+## Lancement de l'application
 
 ```bash
 python run.py
@@ -48,7 +48,7 @@ L'application va :
 
 Pour arrêter l'application : `Ctrl+C` dans la console
 
-## 📁 Structure du projet
+## Structure du projet
 
 ```
 facturation-app/
@@ -70,9 +70,9 @@ facturation-app/
     └── uploads/           # Fichiers uploadés
 ```
 
-## 🎨 Fonctionnalités
+## Fonctionnalités
 
-### ✅ Version 1.0 (Actuelle)
+### Version 1.6 (Actuelle)
 - [x] Gestion des clients
 - [x] Gestion des produits/services
 - [x] Gestion de stock (optionnelle)
@@ -80,17 +80,17 @@ facturation-app/
 - [x] Création de devis
 - [x] Tableau de bord
 - [x] Paramètres entreprise
-- [ ] Génération PDF
-- [ ] Envoi par email
-- [ ] Export Excel/CSV
+- [x] Génération PDF
+- [x] Envoi par email
+- [x] Export Excel/CSV
 
-### 🚧 Prochaines versions
+### Prochaines versions
 - Multi-utilisateurs
 - Paiements en ligne
 - Statistiques avancées
 - Mode cloud
 
-## 🛠️ Développement
+## Développement
 
 ### Lancer en mode développement
 ```bash
@@ -108,7 +108,7 @@ flask db upgrade
 pytest
 ```
 
-## 📦 Packaging (PyInstaller)
+## Packaging (PyInstaller)
 
 Pour créer un exécutable autonome :
 
@@ -122,7 +122,7 @@ pyinstaller --onefile --windowed --name="FacturationPro" run.py
 # L'exécutable sera dans : dist/FacturationPro.exe (Windows)
 ```
 
-## 🐛 Problèmes courants
+## Problèmes courants
 
 ### Le navigateur ne s'ouvre pas automatiquement
 - Ouvrez manuellement : http://127.0.0.1:5000
@@ -134,10 +134,10 @@ pyinstaller --onefile --windowed --name="FacturationPro" run.py
 - Fermez toutes les instances de l'application
 - Supprimez `data/facturation.db` (⚠️ perte de données)
 
-## 📝 License
+## License
 
 Propriétaire - Tous droits réservés
 
-## 👨‍💻 Auteur
+## Auteur
 
-Créé avec ❤️ par Mondher & Claude
+Mondher
