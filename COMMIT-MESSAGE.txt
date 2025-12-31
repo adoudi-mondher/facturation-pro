@@ -1,0 +1,44 @@
+feat: add license system and improve Windows build (v1.6.0)
+
+🔐 License System
+- Add hardware-based license manager (app/utils/license.py)
+- Machine ID based on MAC + hostname + system info
+- AES-128 encryption with cryptography/Fernet
+- Remote license generation support
+- Graceful degradation if license check fails
+
+🏗️ Windows Build Improvements
+- Fix PyInstaller .spec files (Unix → Windows paths)
+- Add missing hidden imports (cryptography, PIL, dateutil)
+- Create build_for_client scripts (clean builds for distribution)
+- Add automatic data backup/restore during personal builds
+- Two build modes: personal (preserves data) vs client (clean)
+
+📦 Deployment Tools
+- generate_customer_license.py: Admin license generator
+- get_machine_id.py: Client utility for remote activation
+- build_machine_id_tool.bat: Compile GetMachineID.exe
+- test_license.py: License system tests
+
+📚 Documentation
+- BUILD-PERSONNEL-VS-CLIENT.md: Build modes comparison
+- GUIDE-DEPLOIEMENT-DISTANT.md: Complete deployment guide
+- DEPLOIEMENT-CLIENT-README.md: Quick reference
+- PROTECTION-DONNEES-BUILD.md: Data protection during builds
+- CHANGELOG-v1.6.0.md: Complete changelog
+
+🧹 Cleanup
+- Remove temporary files (421 MB freed)
+- Remove venv/, venv_build/, build/, dist/
+- Archive obsolete documentation
+- Protect personal license files
+- Update .gitignore (license_*.txt, .personal_backup/)
+
+🔧 Technical
+- Python 3.14+ support
+- Windows 10/11 compatible
+- Build size: 53 MB (219 files)
+- Executable: 13 MB (EasyFacture.exe)
+
+Breaking Changes: None
+Migration: No action required for existing installations

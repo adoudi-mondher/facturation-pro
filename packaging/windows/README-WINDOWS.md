@@ -1,27 +1,59 @@
 # 🪟 EASY FACTURE - VERSION WINDOWS
 
-**Version :** 1.5.0  
-**Par :** Mondher ADOUDI - Sidr Valley AI  
+**Version :** 1.6.0 (avec système de licence)
+**Par :** Mondher ADOUDI - Sidr Valley AI
 **Contact :** adoudi@mondher.ch
 
 ---
 
-## 🚀 INSTALLATION
+## 🚀 BUILD DE L'APPLICATION
 
-### Étape 1 : Build de l'exécutable
+### ⚠️ IMPORTANT : 2 types de build
 
+| Script | Pour | Vos données |
+|--------|------|-------------|
+| `build.bat` / `build.sh` | VOUS (dev) | ✅ Préservées |
+| `build_for_client.bat` / `build_for_client.sh` | CLIENTS | ❌ Propre |
+
+### 🏠 Build PERSONNEL (garde vos données)
+
+**PowerShell/CMD :**
 ```cmd
-cd windows
+cd packaging\windows
 build.bat
 ```
 
+**Git Bash :**
+```bash
+bash packaging/windows/build.sh
+```
+
+### 📦 Build CLIENT (propre pour distribution)
+
+**PowerShell/CMD :**
+```cmd
+cd packaging\windows
+build_for_client.bat
+```
+
+**Git Bash :**
+```bash
+bash packaging/windows/build_for_client.sh
+```
+
+---
+
 Le script va :
-1. ✅ Vérifier Python
-2. ✅ Installer PyInstaller si nécessaire
-3. ✅ Compiler l'application
-4. ✅ Créer `dist\EasyFacture\`
+1. ✅ Vérifier Python 3.14+
+2. ✅ Créer un environnement virtuel dédié (`venv_build`)
+3. ✅ Installer PyInstaller et toutes les dépendances
+4. ✅ Compiler l'application avec tous les modules (cryptography, PIL, etc.)
+5. ✅ Créer `packaging/windows/dist/EasyFacture/`
 
 **Temps :** 2-5 minutes
+**Résultat :**
+- **EasyFacture.exe** : 13 MB
+- **Package complet** : 53 MB (219 fichiers)
 
 ---
 
@@ -90,8 +122,22 @@ Puis rebuild.
 
 ## 📊 TAILLE
 
-**Exécutable compilé :** ~80-150 MB  
-**Avec données :** ~100-200 MB
+**Exécutable compilé :** 13 MB (EasyFacture.exe)
+**Package complet :** 53 MB (219 fichiers)
+**Avec données utilisateur :** ~60-100 MB
+
+## 🔐 SYSTÈME DE LICENCE (v1.6.0)
+
+L'application inclut maintenant un système de protection par licence :
+- Basé sur l'empreinte matérielle de la machine
+- Chiffrement AES-128 (cryptography/Fernet)
+- Licence stockée dans `%APPDATA%\FacturationPro\license.dat`
+- Activation possible via interface graphique (tkinter) ou console
+
+Pour désactiver en développement, modifier dans [run.py:18](../../run.py#L18) :
+```python
+ENABLE_LICENSE_CHECK = False
+```
 
 ---
 
