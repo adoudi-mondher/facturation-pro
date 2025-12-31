@@ -1,14 +1,25 @@
 @echo off
 REM ===============================================
-REM Easy Facture - Script de build Windows
+REM Easy Facture - Build VERSION CLIENT (propre)
 REM Par Mondher ADOUDI - Sidr Valley AI
+REM Version 1.6.0
 REM ===============================================
 
 echo.
 echo ================================================
-echo    EASY FACTURE - BUILD WINDOWS .EXE
-echo    Version 1.6.0
+echo    EASY FACTURE - BUILD VERSION CLIENT
+echo    Version 1.6.0 (Distribution propre)
 echo ================================================
+echo.
+echo ATTENTION: Ce build sera SANS vos donnees de test
+echo    Utiliser pour: Distribution aux clients
+echo    Ne PAS utiliser pour: Votre version perso
+echo.
+set /p confirm="Continuer? (o/n): "
+if /i not "%confirm%"=="o" (
+    echo Build annule
+    exit /b 0
+)
 echo.
 
 REM Vérifier Python
@@ -19,41 +30,29 @@ if errorlevel 1 (
     exit /b 1
 )
 
-echo [1/5] Python detecte : OK
+echo [1/6] Python detecte : OK
 echo.
 
 REM Vérifier PyInstaller
 pip show pyinstaller >nul 2>&1
 if errorlevel 1 (
-    echo [2/5] Installation de PyInstaller...
+    echo [2/6] Installation de PyInstaller...
     pip install pyinstaller
 ) else (
-    echo [2/5] PyInstaller deja installe : OK
+    echo [2/6] PyInstaller deja installe : OK
 )
 echo.
 
-REM Nettoyer les builds precedents (mais sauvegarder les donnees personnelles)
-echo [3/5] Nettoyage des builds precedents...
-
-REM Sauvegarder les donnees si elles existent
-set BACKUP_NEEDED=0
-if exist dist\EasyFacture\data (
-    echo     Sauvegarde des donnees personnelles...
-    if not exist .backup_personal_data mkdir .backup_personal_data
-    xcopy /E /I /Q /Y dist\EasyFacture\data .backup_personal_data\data >nul
-    set BACKUP_NEEDED=1
-    echo     Donnees sauvegardees temporairement
-)
-
-REM Nettoyer
+REM Nettoyer SANS sauvegarder (build propre pour client)
+echo [3/6] Nettoyage complet (SANS sauvegarde)...
 if exist build rmdir /s /q build
 if exist dist rmdir /s /q dist
 if exist EasyFacture.spec del /q EasyFacture.spec
-echo     Nettoyage termine (donnees personnelles preservees)
+echo     Nettoyage termine (build propre pour client)
 echo.
 
-REM Creer le .spec file
-echo [4/5] Creation du fichier de configuration...
+REM Créer le .spec file (identique au build normal)
+echo [4/6] Creation du fichier de configuration...
 (
 echo # -*- mode: python ; coding: utf-8 -*-
 echo.
@@ -137,7 +136,7 @@ echo     Configuration creee : EasyFacture.spec
 echo.
 
 REM Build
-echo [5/5] Build de l'executable...
+echo [5/6] Build de l'executable...
 echo     Ceci peut prendre 2-5 minutes...
 echo.
 pyinstaller EasyFacture.spec --clean
@@ -145,44 +144,58 @@ pyinstaller EasyFacture.spec --clean
 if errorlevel 1 (
     echo.
     echo [ERREUR] La compilation a echoue
-
-    REM Restaurer les donnees meme en cas d'echec
-    if %BACKUP_NEEDED%==1 (
-        if exist .backup_personal_data\data (
-            echo Restauration des donnees en cours...
-            if not exist dist\EasyFacture mkdir dist\EasyFacture
-            xcopy /E /I /Q /Y .backup_personal_data\data dist\EasyFacture\data >nul
-            rmdir /s /q .backup_personal_data
-        )
-    )
-
     pause
     exit /b 1
 )
 
-REM Restaurer les donnees personnelles
-if %BACKUP_NEEDED%==1 (
-    if exist .backup_personal_data\data (
-        echo.
-        echo Restauration des donnees personnelles...
-        xcopy /E /I /Q /Y .backup_personal_data\data dist\EasyFacture\data >nul
-        rmdir /s /q .backup_personal_data
-        echo     Donnees restaurees avec succes
-    )
+REM Créer structure data vide pour le client
+echo.
+echo [6/6] Creation d'un dossier data/ vide pour le client...
+if exist dist\EasyFacture\EasyFacture.exe (
+    mkdir dist\EasyFacture\data\uploads\logos 2>nul
+    mkdir dist\EasyFacture\data\uploads\factures 2>nul
+    mkdir dist\EasyFacture\data\backups 2>nul
+
+    REM Créer fichiers .gitkeep
+    type nul > dist\EasyFacture\data\uploads\.gitkeep
+    type nul > dist\EasyFacture\data\backups\.gitkeep
+
+    echo     Dossier data/ vide cree
+    echo     Structure: data/uploads/, data/backups/
+) else (
+    echo     ERREUR: EasyFacture.exe non trouve
+    pause
+    exit /b 1
 )
 
+REM Vérifier qu'il n'y a pas de base de données
+if exist dist\EasyFacture\data\facturation.db (
+    echo     ATTENTION: Base de donnees detectee (suppression...)
+    del /q dist\EasyFacture\data\facturation.db
+)
+
+echo     Aucune donnee personnelle detectee
 echo.
+
 echo ================================================
-echo    BUILD TERMINE !
+echo    BUILD CLIENT TERMINE !
 echo ================================================
 echo.
-echo Executable : dist\EasyFacture\EasyFacture.exe
-echo.
-echo Pour tester :
-echo   cd dist\EasyFacture
-echo   EasyFacture.exe
+echo Package client (PROPRE) : dist\EasyFacture\
+echo Sans donnees personnelles: OUI
 echo.
 echo Pour distribuer :
-echo   Compressez le dossier dist\EasyFacture en ZIP
+echo   1. Compresser le dossier dist\EasyFacture\
+echo      (clic droit ^> Envoyer vers ^> Dossier compresse)
+echo.
+echo   2. Renommer en: EasyFacture-v1.6.0-Client.zip
+echo.
+echo   3. Envoyer au client
+echo.
+echo   4. Le client decompresse et lance EasyFacture.exe
+echo      - L'app creera automatiquement la base de donnees vide
+echo      - Le client entrera sa licence au premier lancement
+echo.
+echo Package pret pour distribution !
 echo.
 pause

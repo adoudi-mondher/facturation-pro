@@ -1,5 +1,6 @@
 """
 Configuration de l'application Flask
+Version 1.6 - Avec support licence
 """
 import os
 from pathlib import Path
@@ -13,9 +14,24 @@ BASE_DIR = Path(__file__).parent
 
 class Config:
     """Configuration de base"""
-    
+
     # Secret key pour les sessions
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
+    SECRET_KEY = os.environ.get('SECRET_KEY')
+
+    # Vérifier que la SECRET_KEY est configurée
+    if not SECRET_KEY:
+        import warnings
+        warnings.warn(
+            "⚠️  SECRET_KEY non configurée dans .env ! "
+            "Exécutez: python generate_secret_key.py",
+            UserWarning,
+            stacklevel=2
+        )
+        # Générer une clé temporaire (différente à chaque démarrage)
+        import secrets
+        SECRET_KEY = secrets.token_hex(32)
+        print("⚠️  SECRET_KEY temporaire générée (sera perdue au redémarrage)")
+        print("⚠️  Configurez SECRET_KEY dans .env pour la persistance")
     
     # Base de données
     DATA_DIR = BASE_DIR / 'data'
@@ -56,17 +72,24 @@ class Config:
     
     # Application
     APP_NAME = 'Facturation Pro'
-    APP_VERSION = '1.0.0'
+    APP_VERSION = '1.6.0'  # ⬆️ Mise à jour version
+    
+    # 🆕 Licence (nouveau)
+    LICENSE_ENABLED = os.environ.get('LICENSE_ENABLED', 'True').lower() == 'true'
 
 class DevelopmentConfig(Config):
     """Configuration développement"""
     DEBUG = True
     TESTING = False
+    # En dev, on peut désactiver la licence
+    LICENSE_ENABLED = os.environ.get('LICENSE_ENABLED', 'False').lower() == 'true'
 
 class ProductionConfig(Config):
     """Configuration production"""
     DEBUG = False
     TESTING = False
+    # En prod, licence obligatoire
+    LICENSE_ENABLED = True
 
 # Configuration par défaut
 config = {
