@@ -385,7 +385,7 @@ Pour toute question ou problème:
 
 ## Licence
 
-Open Source - Pour les développeur
+Open Source - Pour les développeurs
 
 Copyright (c) 2025 Mondher Adoudi
 
