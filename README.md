@@ -385,7 +385,7 @@ Pour toute question ou problème:
 
 ## Licence
 
-Propriétaire - Tous droits réservés
+Open Source - Pour les développeur
 
 Copyright (c) 2025 Mondher Adoudi
 
@@ -395,7 +395,7 @@ Copyright (c) 2025 Mondher Adoudi
 
 **Mondher Adoudi**
 - GitHub: [@adoudi-mondher](https://github.com/adoudi-mondher)
-- Email: adoudi.mondher@ik.me
+- Email: adoudi@mondher.ch
 
 ---
 
