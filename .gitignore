@@ -56,4 +56,5 @@ data/pdf/*.pdf
 
 # License files (personal licenses)
 license_*.txt
+machine_id*.txt
 .personal_backup/
