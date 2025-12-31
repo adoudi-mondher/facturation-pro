@@ -1,6 +1,6 @@
 """
 Configuration de l'application Flask
-Version 1.6 - Avec support licence
+Version 1.7 - Avec support licence
 """
 import os
 from pathlib import Path
@@ -71,8 +71,8 @@ class Config:
     SMTP_USE_TLS = os.environ.get('SMTP_USE_TLS', 'True').lower() == 'true'
     
     # Application
-    APP_NAME = 'Facturation Pro'
-    APP_VERSION = '1.6.0'  # ⬆️ Mise à jour version
+    APP_NAME = 'Easy Facture'
+    APP_VERSION = '1.7.0'  # ⬆️ Mise à jour version
     
     # 🆕 Licence (nouveau)
     LICENSE_ENABLED = os.environ.get('LICENSE_ENABLED', 'True').lower() == 'true'

@@ -4,7 +4,7 @@
 Point d'entree principal de l'application desktop
 Lance Flask en arriere-plan et ouvre le navigateur automatiquement
 
-Version 1.6 : Avec systeme de protection par licence (optionnel)
+Version 1.7 : Avec systeme de protection par licence (optionnel)
 """
 
 import os
@@ -321,7 +321,7 @@ def main():
     """Lance l'application desktop"""
     try:
         print("=" * 60)
-        print("DEMARRAGE DE FACTURATION PRO v1.6")
+        print("DEMARRAGE DE EASY FACTURE v1.7")
         print("=" * 60)
         print()
 
