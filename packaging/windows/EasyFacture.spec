@@ -34,7 +34,11 @@ a = Analysis(
         'dateutil.parser',
         'tkinter',
         'tkinter.messagebox',
-        'tkinter.simpledialog'
+        'tkinter.simpledialog',
+        'requests',
+        'requests.adapters',
+        'requests.auth',
+        'urllib3'
     ],
     hookspath=[],
     hooksconfig={},
