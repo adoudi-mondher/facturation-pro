@@ -8,10 +8,10 @@ a = Analysis(
     binaries=[],
     datas=[
         ('../../app', 'app'),
-        ('../../data', 'data'),
         ('../../static', 'static'),
         ('../../config.py', '.'),
-        ('../../icons', 'icons')
+        ('../../icons', 'icons'),
+        ('../../.env.example', '.')
     ],
     hiddenimports=[
         'flask',
@@ -31,7 +31,10 @@ a = Analysis(
         'PIL',
         'PIL.Image',
         'dateutil',
-        'dateutil.parser'
+        'dateutil.parser',
+        'tkinter',
+        'tkinter.messagebox',
+        'tkinter.simpledialog'
     ],
     hookspath=[],
     hooksconfig={},
