@@ -21,22 +21,23 @@ PROJECT_ROOT=$(pwd)
 
 echo "[1/6] Vérification de Python..."
 
-# Vérifier py (Python Launcher)
-if ! cmd //c "py --version" 2>&1 | grep -q "Python"; then
-    echo "ERROR: Python non trouvé"
-    echo "Veuillez installer Python depuis python.org"
+# Vérifier py (Python Launcher) avec Python 3.11
+if ! cmd //c "py -3.11 --version" 2>&1 | grep -q "Python 3.11"; then
+    echo "ERROR: Python 3.11 non trouvé"
+    echo "Installation de Python 3.11 requise pour un build correct"
+    echo "Veuillez installer Python 3.11 depuis python.org ou avec: winget install Python.Python.3.11"
     exit 1
 fi
 
-PYTHON_VERSION=$(cmd //c "py --version" 2>&1 | head -1)
+PYTHON_VERSION=$(cmd //c "py -3.11 --version" 2>&1 | head -1)
 echo "     $PYTHON_VERSION détecté"
 echo ""
 
 # Créer/Vérifier un venv local si nécessaire
 echo "[2/6] Préparation de l'environnement virtuel..."
 if [ ! -d "venv_build" ]; then
-    echo "     Création d'un nouvel environnement virtuel..."
-    cmd //c "py -m venv venv_build"
+    echo "     Création d'un nouvel environnement virtuel avec Python 3.11..."
+    cmd //c "py -3.11 -m venv venv_build"
     echo "     Environnement créé: venv_build/"
 else
     echo "     Environnement existant: venv_build/"
