@@ -1,0 +1,32 @@
+LICENCE LOGICIEL EASY FACTURE
+=============================
+
+Copyright (c) 2025 Mondher ADOUDI - Sidr Valley AI
+Tous droits réservés.
+
+Ce logiciel et sa documentation sont protégés par les lois sur le droit d'auteur.
+
+PÉRIODE D'ESSAI
+---------------
+Une période d'essai gratuite de 30 jours est fournie. Durant cette période,
+vous pouvez utiliser toutes les fonctionnalités du logiciel.
+
+UTILISATION COMMERCIALE
+-----------------------
+L'utilisation commerciale après la période d'essai nécessite l'acquisition
+d'une licence payante.
+
+RESTRICTIONS
+------------
+Vous n'êtes PAS autorisé à :
+- Copier, distribuer ou modifier ce logiciel
+- Désassembler ou faire de l'ingénierie inverse
+- Utiliser ce logiciel après expiration de la licence d'essai sans licence valide
+
+GARANTIE
+--------
+CE LOGICIEL EST FOURNI "TEL QUEL", SANS GARANTIE D'AUCUNE SORTE.
+
+Pour toute question concernant les licences, contactez :
+Email : adoudi@mondher.ch
+Web : https://mondher.ch/easy-facture

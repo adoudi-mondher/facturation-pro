@@ -3,6 +3,7 @@ Configuration de l'application Flask
 Version 1.6 - Avec support licence
 """
 import os
+import sys
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -12,29 +13,37 @@ load_dotenv()
 # Répertoire de base
 BASE_DIR = Path(__file__).parent
 
+# Fonction pour déterminer le dossier de données
+def get_data_dir():
+    """Retourne le dossier de données approprié selon l'environnement"""
+    # Si on est en mode développement (script Python direct)
+    if not getattr(sys, 'frozen', False):
+        return BASE_DIR / 'data'
+
+    # Si on est en mode exécutable PyInstaller
+    # Utiliser AppData\Local pour stocker les données utilisateur
+    appdata = os.environ.get('LOCALAPPDATA')
+    if appdata:
+        data_dir = Path(appdata) / 'EasyFacture' / 'data'
+    else:
+        # Fallback si LOCALAPPDATA n'existe pas
+        data_dir = Path.home() / '.easyfacture' / 'data'
+
+    return data_dir
+
 class Config:
     """Configuration de base"""
 
     # Secret key pour les sessions
     SECRET_KEY = os.environ.get('SECRET_KEY')
 
-    # Vérifier que la SECRET_KEY est configurée
+    # Générer une clé automatiquement si non configurée
     if not SECRET_KEY:
-        import warnings
-        warnings.warn(
-            "⚠️  SECRET_KEY non configurée dans .env ! "
-            "Exécutez: python generate_secret_key.py",
-            UserWarning,
-            stacklevel=2
-        )
-        # Générer une clé temporaire (différente à chaque démarrage)
         import secrets
         SECRET_KEY = secrets.token_hex(32)
-        print("⚠️  SECRET_KEY temporaire générée (sera perdue au redémarrage)")
-        print("⚠️  Configurez SECRET_KEY dans .env pour la persistance")
-    
+
     # Base de données
-    DATA_DIR = BASE_DIR / 'data'
+    DATA_DIR = get_data_dir()
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     
     DB_PATH = DATA_DIR / 'facturation.db'
@@ -42,9 +51,10 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # Dossiers
-    UPLOAD_FOLDER = BASE_DIR / (os.environ.get('UPLOAD_FOLDER') or 'data/uploads')
-    BACKUP_FOLDER = BASE_DIR / (os.environ.get('BACKUP_FOLDER') or 'data/backups')
-    LOG_FOLDER = BASE_DIR / (os.environ.get('LOG_FOLDER') or 'logs')
+    UPLOAD_FOLDER = DATA_DIR / 'uploads'
+    BACKUP_FOLDER = DATA_DIR / 'backups'
+    # Logs dans le même emplacement que les données
+    LOG_FOLDER = DATA_DIR.parent / 'logs'
     
     # Créer les dossiers s'ils n'existent pas
     for folder in [UPLOAD_FOLDER, BACKUP_FOLDER, LOG_FOLDER]:

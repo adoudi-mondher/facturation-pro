@@ -15,27 +15,8 @@ import time
 from pathlib import Path
 from app import create_app
 
-# Creer .env depuis .env.example si n'existe pas
-def ensure_env_file():
-    """Cree le fichier .env depuis .env.example si necessaire"""
-    env_file = Path('.env')
-    env_example = Path('.env.example')
-
-    if not env_file.exists() and env_example.exists():
-        print("Initialisation du fichier de configuration...")
-        import shutil
-        shutil.copy(env_example, env_file)
-        print("OK Fichier .env cree")
-    elif not env_file.exists() and not env_example.exists():
-        # Creer un .env minimal
-        print("Creation fichier de configuration minimal...")
-        env_file.write_text(
-            "# Configuration de l'application\n"
-            "SECRET_KEY=\n"
-            "DATABASE_URI=sqlite:///data/facturation.db\n",
-            encoding='utf-8'
-        )
-        print("OK Fichier .env cree")
+# Configuration est maintenant geree par config.py
+# Plus besoin de creer .env dans Program Files
 
 # Configuration de la protection
 ENABLE_LICENSE_CHECK = True  # Mettre a True pour activer
@@ -317,6 +298,45 @@ def open_browser(port=5000):
     webbrowser.open(url)
 
 
+def create_system_tray_icon(port=5000):
+    """Cree une icone dans la barre des taches Windows"""
+    try:
+        from PIL import Image
+        import pystray
+
+        # Charger l'icone
+        icon_path = Path('icons/icon.ico')
+        if not icon_path.exists():
+            # Creer une icone simple si pas d'icone
+            icon_image = Image.new('RGB', (64, 64), color='blue')
+        else:
+            icon_image = Image.open(icon_path)
+
+        def on_quit(icon, item):
+            """Quitter l'application"""
+            icon.stop()
+            os._exit(0)
+
+        def on_open(icon, item):
+            """Ouvrir dans le navigateur"""
+            webbrowser.open(f'http://127.0.0.1:{port}')
+
+        # Menu de l'icone
+        menu = pystray.Menu(
+            pystray.MenuItem('Ouvrir Easy Facture', on_open, default=True),
+            pystray.MenuItem('Quitter', on_quit)
+        )
+
+        # Creer l'icone
+        icon = pystray.Icon('EasyFacture', icon_image, 'Easy Facture v1.7', menu)
+
+        # Lancer dans un thread
+        threading.Thread(target=icon.run, daemon=True).start()
+
+    except Exception as e:
+        print(f"Impossible de creer l'icone systeme: {e}")
+
+
 def main():
     """Lance l'application desktop"""
     try:
@@ -325,24 +345,20 @@ def main():
         print("=" * 60)
         print()
 
-        # Assurer que .env existe
-        ensure_env_file()
-        print()
-
         # Verification de la licence
         if ENABLE_LICENSE_CHECK:
             print("Verification de la licence...")
             if not check_license():
                 print("\nERREUR Impossible de demarrer sans licence valide.")
                 print("\nPour obtenir une licence, contactez votre fournisseur.")
-                input("\nAppuyez sur Entree pour quitter...")
+                time.sleep(5)  # Pause pour lire le message
                 sys.exit(1)
             print()
     except Exception as e:
         print(f"\nERREUR CRITIQUE lors du demarrage: {e}")
         import traceback
         traceback.print_exc()
-        input("\nAppuyez sur Entree pour quitter...")
+        time.sleep(10)  # Pause pour lire l'erreur
         sys.exit(1)
     
     # Creer l'application Flask
@@ -352,32 +368,29 @@ def main():
         print(f"ERREUR lors de la creation de l'application: {e}")
         import traceback
         traceback.print_exc()
-        input("\nAppuyez sur Entree pour quitter...")
+        time.sleep(10)  # Pause pour lire l'erreur
         sys.exit(1)
     
     # Determiner le port
     port = int(os.environ.get('PORT', 5000))
-    
+
     # Ouvrir le navigateur dans un thread separe
-    # (seulement si ce n'est pas le processus de reload de Flask)
-    if not os.environ.get('WERKZEUG_RUN_MAIN'):
-        threading.Thread(target=open_browser, args=(port,), daemon=True).start()
-    
+    threading.Thread(target=open_browser, args=(port,), daemon=True).start()
+
+    # Creer l'icone systeme (pour pouvoir quitter l'app)
+    create_system_tray_icon(port)
+
     # Afficher les informations
     print(f"OK Application prete !")
     print(f"Interface disponible sur : http://127.0.0.1:{port}")
-    print(f"ATTENTION Ne fermez pas cette fenetre\n")
-    print("Pour arreter l'application : Ctrl+C\n")
+    print(f"Pour arreter : Clic droit sur l'icone Easy Facture dans la barre des taches > Quitter\n")
     print("=" * 60)
-    
-    # Lancer Flask
+
+    # Lancer avec Waitress (serveur WSGI de production)
     try:
-        app.run(
-            host='127.0.0.1',
-            port=port,
-            debug=True,  # Mode debug pour le developpement
-            use_reloader=True  # Auto-reload en dev
-        )
+        from waitress import serve
+        print("Demarrage du serveur de production...")
+        serve(app, host='127.0.0.1', port=port, threads=4)
     except KeyboardInterrupt:
         print("\n\nArret de l'application...")
         sys.exit(0)
@@ -385,7 +398,7 @@ def main():
         print(f"\nERREUR lors du demarrage: {e}")
         import traceback
         traceback.print_exc()
-        input("\nAppuyez sur Entree pour quitter...")
+        time.sleep(10)  # Pause pour lire l'erreur
         sys.exit(1)
 
 
