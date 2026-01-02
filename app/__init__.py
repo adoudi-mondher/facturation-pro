@@ -24,13 +24,14 @@ def create_app(config_name='default'):
     db.init_app(app)
     
     # Enregistrer les blueprints (routes)
-    from app.routes import main, clients, produits, documents, parametres, api
+    from app.routes import main, clients, produits, documents, parametres, api, rapports
     app.register_blueprint(main.bp)
     app.register_blueprint(clients.bp)
     app.register_blueprint(produits.bp)
     app.register_blueprint(documents.bp)
     app.register_blueprint(parametres.bp)
     app.register_blueprint(api.bp)
+    app.register_blueprint(rapports.bp)
     from app.routes import exports
     app.register_blueprint(exports.bp)
     

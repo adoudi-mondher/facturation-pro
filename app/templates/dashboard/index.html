@@ -51,6 +51,9 @@
                 <h5 class="card-title text-muted">CA ce mois</h5>
                 <h2 class="text-warning">{{ stats.ca_mois|currency }}</h2>
                 <small class="text-muted">TTC</small>
+                <a href="{{ url_for('rapports.chiffre_affaires') }}" class="btn btn-sm btn-outline-warning mt-2">
+                    Voir rapport <i class="bi bi-graph-up"></i>
+                </a>
             </div>
         </div>
     </div>

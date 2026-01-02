@@ -107,12 +107,16 @@
                            href="{{ url_for('documents.devis_list') }}">
                             <i class="bi bi-file-earmark-ruled"></i> Devis
                         </a>
-                        <a class="nav-link {% if 'exports' in request.endpoint|string %}active{% endif %}" 
+                        <a class="nav-link {% if 'exports' in request.endpoint|string %}active{% endif %}"
                             href="{{ url_for('exports.index') }}">
                             <i class="bi bi-download"></i> Exports
                         </a>
+                        <a class="nav-link {% if 'rapports' in request.endpoint|string %}active{% endif %}"
+                            href="{{ url_for('rapports.chiffre_affaires') }}">
+                            <i class="bi bi-graph-up"></i> Rapports CA
+                        </a>
                         <hr class="text-white">
-                        <a class="nav-link {% if request.endpoint == 'parametres.index' %}active{% endif %}" 
+                        <a class="nav-link {% if request.endpoint == 'parametres.index' %}active{% endif %}"
                            href="{{ url_for('parametres.index') }}">
                             <i class="bi bi-gear"></i> Paramètres
                         </a>

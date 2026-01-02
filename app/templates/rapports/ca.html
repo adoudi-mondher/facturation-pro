@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+
+{% block title %}Rapport CA - Facturation Pro{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .stat-card h3 {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-card p {
+        margin: 0;
+        opacity: 0.9;
+    }
+
+    .chart-container {
+        position: relative;
+        height: 400px;
+        margin: 2rem 0;
+    }
+
+    .table-ca {
+        font-size: 0.95rem;
+    }
+
+    .table-ca thead {
+        background-color: #f8f9fa;
+    }
+
+    .total-row {
+        font-weight: bold;
+        background-color: #e9ecef;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1><i class="bi bi-graph-up"></i> Rapport Chiffre d'Affaires</h1>
+            <p class="text-muted">Évolution du CA sur les {{ periode }} derniers mois</p>
+        </div>
+        <div>
+            <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Retour au tableau de bord
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistiques récapitulatives -->
+    <div class="row">
+        <div class="col-md-3">
+            <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <h3>{{ total_ttc|currency }}</h3>
+                <p>CA Total TTC</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <h3>{{ total_ht|currency }}</h3>
+                <p>CA Total HT</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <h3>{{ total_tva|currency }}</h3>
+                <p>TVA Collectée</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                <h3>{{ total_factures }}</h3>
+                <p>Factures Validées</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Graphique -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-bar-chart-fill"></i> Évolution mensuelle du CA</h5>
+        </div>
+        <div class="card-body">
+            <div class="chart-container">
+                <canvas id="caChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tableau détaillé -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-table"></i> Détail par mois</h5>
+            <div class="btn-group" role="group">
+                <a href="{{ url_for('rapports.chiffre_affaires', periode=6) }}"
+                   class="btn btn-sm btn-outline-primary {{ 'active' if periode == 6 else '' }}">6 mois</a>
+                <a href="{{ url_for('rapports.chiffre_affaires', periode=12) }}"
+                   class="btn btn-sm btn-outline-primary {{ 'active' if periode == 12 else '' }}">12 mois</a>
+                <a href="{{ url_for('rapports.chiffre_affaires', periode=24) }}"
+                   class="btn btn-sm btn-outline-primary {{ 'active' if periode == 24 else '' }}">24 mois</a>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover table-ca">
+                    <thead>
+                        <tr>
+                            <th>Période</th>
+                            <th class="text-end">Nb Factures</th>
+                            <th class="text-end">CA HT</th>
+                            <th class="text-end">TVA</th>
+                            <th class="text-end">CA TTC</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if donnees_ca %}
+                            {% for mois in donnees_ca %}
+                            <tr>
+                                <td><strong>{{ mois.periode }}</strong></td>
+                                <td class="text-end">{{ mois.nb_factures }}</td>
+                                <td class="text-end">{{ mois.ca_ht|currency }}</td>
+                                <td class="text-end">{{ mois.ca_tva|currency }}</td>
+                                <td class="text-end"><strong>{{ mois.ca_ttc|currency }}</strong></td>
+                            </tr>
+                            {% endfor %}
+                            <tr class="total-row">
+                                <td><strong>TOTAL</strong></td>
+                                <td class="text-end"><strong>{{ total_factures }}</strong></td>
+                                <td class="text-end"><strong>{{ total_ht|currency }}</strong></td>
+                                <td class="text-end"><strong>{{ total_tva|currency }}</strong></td>
+                                <td class="text-end"><strong>{{ total_ttc|currency }}</strong></td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">
+                                    <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                                    <p class="mt-2">Aucune facture validée sur cette période</p>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    // Données pour le graphique
+    const labels = [
+        {% for mois in donnees_ca_graph %}
+        '{{ mois.mois_nom[:3] }} {{ mois.annee }}'{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    const caHT = [
+        {% for mois in donnees_ca_graph %}
+        {{ mois.ca_ht }}{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    const caTTC = [
+        {% for mois in donnees_ca_graph %}
+        {{ mois.ca_ttc }}{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    // Configuration du graphique
+    const ctx = document.getElementById('caChart').getContext('2d');
+    const caChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'CA HT',
+                    data: caHT,
+                    backgroundColor: 'rgba(102, 126, 234, 0.6)',
+                    borderColor: 'rgba(102, 126, 234, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'CA TTC',
+                    data: caTTC,
+                    backgroundColor: 'rgba(118, 75, 162, 0.6)',
+                    borderColor: 'rgba(118, 75, 162, 1)',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            label += new Intl.NumberFormat('fr-FR', {
+                                style: 'currency',
+                                currency: 'EUR'
+                            }).format(context.parsed.y);
+                            return label;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return new Intl.NumberFormat('fr-FR', {
+                                style: 'currency',
+                                currency: 'EUR',
+                                minimumFractionDigits: 0
+                            }).format(value);
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
