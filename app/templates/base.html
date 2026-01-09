@@ -310,9 +310,17 @@
     <!-- Script global pour achat de licence -->
     <script>
     // Fonction pour initier l'achat (réutilisable)
+    let purchaseInProgress = false;
+
     function initiateLicensePurchase(email) {
         const errorDiv = document.getElementById('purchaseError');
         const btn = document.getElementById('confirmPurchaseBtn');
+
+        // Empêcher les appels multiples simultanés
+        if (purchaseInProgress) {
+            console.log('Purchase already in progress, ignoring duplicate call');
+            return;
+        }
 
         // Validation email
         if (!email || !email.includes('@')) {
@@ -321,7 +329,8 @@
             return;
         }
 
-        // Désactiver le bouton et afficher le chargement
+        // Marquer comme en cours et désactiver le bouton
+        purchaseInProgress = true;
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Redirection...';
         errorDiv.classList.add('d-none');
@@ -337,10 +346,11 @@
         .then(response => response.json())
         .then(data => {
             if (data.success && data.checkout_url) {
-                // Rediriger vers Stripe Checkout
+                // Rediriger vers Stripe Checkout (ne pas réinitialiser purchaseInProgress car on redirige)
                 window.location.href = data.checkout_url;
             } else {
                 // Afficher l'erreur
+                purchaseInProgress = false;
                 errorDiv.textContent = data.message || 'Erreur lors de la création de la session de paiement';
                 errorDiv.classList.remove('d-none');
                 btn.disabled = false;
@@ -348,6 +358,7 @@
             }
         })
         .catch(error => {
+            purchaseInProgress = false;
             errorDiv.textContent = 'Erreur réseau: ' + error.message;
             errorDiv.classList.remove('d-none');
             btn.disabled = false;
@@ -358,11 +369,15 @@
     // Gestionnaire de clic sur le bouton de confirmation
     document.addEventListener('DOMContentLoaded', function() {
         const confirmBtn = document.getElementById('confirmPurchaseBtn');
-        if (confirmBtn) {
-            confirmBtn.addEventListener('click', function() {
+        if (confirmBtn && !confirmBtn.dataset.listenerAttached) {
+            confirmBtn.dataset.listenerAttached = 'true';
+            confirmBtn.addEventListener('click', function(e) {
+                // Empêcher les double-clics
+                if (confirmBtn.disabled) return;
+
                 const email = document.getElementById('purchaseEmail').value;
                 initiateLicensePurchase(email);
-            });
+            }, { once: false });
         }
 
         // Pré-charger l'email dès le chargement de la page
