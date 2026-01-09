@@ -110,12 +110,11 @@ if [ -f "dist/EasyFacture/EasyFacture.exe" ]; then
     EXE_SIZE=$(du -h "dist/EasyFacture/EasyFacture.exe" | cut -f1)
     echo "     ✓ EasyFacture.exe créé ($EXE_SIZE)"
 
-    # Restaurer les données personnelles si elles ont été sauvegardées
-    if [ "$BACKUP_NEEDED" = true ] && [ -d ".backup_personal_data/data" ]; then
-        echo "     🔄 Restauration des données personnelles..."
-        cp -r .backup_personal_data/data dist/EasyFacture/
+    # NE PAS restaurer les données pour un build client propre
+    # Les données seront créées automatiquement au premier lancement
+    if [ "$BACKUP_NEEDED" = true ] && [ -d ".backup_personal_data" ]; then
         rm -rf .backup_personal_data
-        echo "     ✓ Données personnelles restaurées"
+        echo "     ✓ Build client propre (sans données de test)"
     fi
 
     FILE_COUNT=$(find dist/EasyFacture -type f | wc -l)

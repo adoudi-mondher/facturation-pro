@@ -230,7 +230,7 @@
                         <br>
                         <small>Il vous reste {{ license_status.days_left }} jour{{ 's' if license_status.days_left > 1 else '' }}. Passez à la licence Lifetime pour continuer à utiliser Easy Facture sans interruption.</small>
                     </div>
-                    <button type="button" class="btn btn-sm btn-warning ms-3" data-bs-toggle="modal" data-bs-target="#purchaseModal">
+                    <button type="button" class="btn btn-sm btn-warning ms-3" onclick="document.getElementById('purchaseModalTrigger').click();">
                         Passer à Lifetime - 199€
                     </button>
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
