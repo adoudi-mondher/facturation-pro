@@ -212,7 +212,7 @@ Cordialement,
         <div class="document-info">
             <p><strong>Client :</strong> {document.client.nom_complet}</p>
             <p><strong>Date d'émission :</strong> {document.date_emission.strftime('%d/%m/%Y')}</p>
-            {f'<p><strong>Date d\'échéance :</strong> {document.date_echeance.strftime("%d/%m/%Y")}</p>' if document.date_echeance else ''}
+            {('<p><strong>Date d' + chr(39) + 'échéance :</strong> ' + document.date_echeance.strftime("%d/%m/%Y") + '</p>') if document.date_echeance else ''}
             {f'<p><strong>Conditions :</strong> {document.conditions_paiement}</p>' if document.conditions_paiement else ''}
         </div>
         

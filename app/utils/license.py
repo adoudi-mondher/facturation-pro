@@ -7,6 +7,7 @@ import hashlib
 import uuid
 import json
 import os
+import requests
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -20,10 +21,11 @@ class LicenseManager:
     # python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key())"
     SECRET_KEY = b'QvS9Dy6SjhpVPFf-nsu2NZ-xPfS3-Xaom--vwvdeH6w='
     
-    def __init__(self):
+    def __init__(self, api_url: str = "https://api.easyfacture.mondher.ch"):
         self.license_file = self._get_license_path()
         self._cipher = None
         self._init_cipher()
+        self.api_url = api_url.rstrip('/')
     
     def _init_cipher(self):
         """Initialise le chiffrement (avec fallback gracieux)"""
@@ -214,7 +216,7 @@ class LicenseManager:
     def get_license_info(self):
         """
         Récupère les informations de la licence actuelle
-        
+
         Returns:
             dict or None: Informations de licence déchiffrées
         """
@@ -222,13 +224,87 @@ class LicenseManager:
             license_key = self.load_license()
             if not license_key or not self._cipher:
                 return None
-            
+
             encrypted = bytes.fromhex(license_key)
             decrypted = self._cipher.decrypt(encrypted)
             return json.loads(decrypted.decode())
-            
+
         except Exception:
             return None
+
+    def get_license_status(self):
+        """
+        Récupère le statut de la licence depuis l'API license-server
+
+        Returns:
+            dict: {
+                'is_valid': bool,
+                'license_type': 'trial' | 'lifetime',
+                'days_left': int (pour trial),
+                'message': str,
+                'should_show_cta': bool (afficher le bouton d'achat)
+            }
+        """
+        try:
+            machine_id = self.get_machine_id()
+
+            # Appeler l'API de validation
+            response = requests.post(
+                f"{self.api_url}/api/validate",
+                json={"machine_id": machine_id},
+                timeout=5
+            )
+
+            if response.status_code == 200:
+                data = response.json()
+
+                # Déterminer si on doit afficher le CTA
+                should_show_cta = (
+                    data.get('license_type') == 'trial' and
+                    data.get('is_valid', False)
+                )
+
+                return {
+                    'is_valid': data.get('is_valid', False),
+                    'license_type': data.get('license_type', 'trial'),
+                    'days_left': data.get('days_remaining', 0),
+                    'message': data.get('message', ''),
+                    'should_show_cta': should_show_cta,
+                    'email': data.get('email', '')
+                }
+            else:
+                # Fallback si l'API n'est pas accessible
+                return {
+                    'is_valid': False,
+                    'license_type': 'trial',
+                    'days_left': 0,
+                    'message': 'Impossible de vérifier la licence',
+                    'should_show_cta': True,
+                    'email': ''
+                }
+
+        except requests.exceptions.RequestException:
+            # Erreur réseau - mode gracieux (API license-server pas accessible)
+            # En dev local, afficher un trial de 15 jours pour tester l'UI
+            return {
+                'is_valid': True,  # Ne pas bloquer l'app si l'API est down
+                'license_type': 'trial',
+                'days_left': 15,  # Mode dev: afficher des jours pour tester le CTA
+                'message': 'Vérification hors ligne',
+                'should_show_cta': True,
+                'email': ''
+            }
+        except Exception as e:
+            # Autre erreur - mode gracieux
+            print(f"⚠️ Erreur get_license_status: {e}")
+            return {
+                'is_valid': True,
+                'license_type': 'trial',
+                'days_left': 15,  # Mode dev: afficher des jours pour tester le CTA
+                'message': 'Erreur vérification',
+                'should_show_cta': True,
+                'email': ''
+            }
 
 
 # Fonction utilitaire pour générer une clé secrète

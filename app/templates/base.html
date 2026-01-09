@@ -15,6 +15,7 @@
             --primary-color: #0077BE;
             --secondary-color: #2C3E2F;
             --accent-color: #FFC107;
+            --cta-color: #ff2c55;
         }
         
         body {
@@ -73,6 +74,79 @@
         .table-hover tbody tr:hover {
             background-color: rgba(0, 119, 190, 0.05);
         }
+
+        /* CTA License */
+        .license-cta {
+            background: linear-gradient(135deg, var(--cta-color) 0%, #e6194b 100%);
+            color: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(255, 44, 85, 0.3);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .license-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 44, 85, 0.4);
+        }
+
+        .license-cta .badge-trial {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 0.3rem 0.6rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: inline-block;
+        }
+
+        .license-cta .cta-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+        }
+
+        .license-cta .cta-subtitle {
+            font-size: 0.75rem;
+            opacity: 0.9;
+            margin-bottom: 0.5rem;
+        }
+
+        .license-cta .btn-upgrade {
+            background-color: white;
+            color: var(--cta-color);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+
+        .license-cta .btn-upgrade:hover {
+            background-color: rgba(255, 255, 255, 0.9);
+            transform: scale(1.05);
+        }
+
+        .license-lifetime-badge {
+            background-color: rgba(0, 200, 83, 0.2);
+            color: #00c853;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            margin: 1rem 0;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .license-lifetime-badge i {
+            margin-right: 0.3rem;
+        }
     </style>
     
     {% block extra_css %}{% endblock %}
@@ -86,6 +160,25 @@
                     <h4 class="text-white mb-4">
                         <i class="bi bi-receipt"></i> Easy Facture
                     </h4>
+
+                    <!-- License CTA Badge -->
+                    {% if license_status is defined and license_status.should_show_cta %}
+                    <div class="license-cta" data-bs-toggle="modal" data-bs-target="#purchaseModal">
+                        <div class="badge-trial">
+                            Trial{% if license_status.days_left > 0 %} - {{ license_status.days_left }} jours{% endif %}
+                        </div>
+                        <div class="cta-title">Passer à Lifetime</div>
+                        <div class="cta-subtitle">199€ - Paiement unique</div>
+                        <button class="btn-upgrade">
+                            <i class="bi bi-rocket-takeoff"></i> Débloquer
+                        </button>
+                    </div>
+                    {% elif license_status is defined and license_status.license_type == 'lifetime' %}
+                    <div class="license-lifetime-badge">
+                        <i class="bi bi-check-circle-fill"></i> Licence Lifetime
+                    </div>
+                    {% endif %}
+
                     <nav class="nav flex-column">
                         <a class="nav-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}" 
                            href="{{ url_for('main.dashboard') }}">
@@ -107,12 +200,16 @@
                            href="{{ url_for('documents.devis_list') }}">
                             <i class="bi bi-file-earmark-ruled"></i> Devis
                         </a>
-                        <a class="nav-link {% if 'exports' in request.endpoint|string %}active{% endif %}" 
+                        <a class="nav-link {% if 'exports' in request.endpoint|string %}active{% endif %}"
                             href="{{ url_for('exports.index') }}">
                             <i class="bi bi-download"></i> Exports
                         </a>
+                        <a class="nav-link {% if 'rapports' in request.endpoint|string %}active{% endif %}"
+                            href="{{ url_for('rapports.chiffre_affaires') }}">
+                            <i class="bi bi-graph-up"></i> Rapports CA
+                        </a>
                         <hr class="text-white">
-                        <a class="nav-link {% if request.endpoint == 'parametres.index' %}active{% endif %}" 
+                        <a class="nav-link {% if request.endpoint == 'parametres.index' %}active{% endif %}"
                            href="{{ url_for('parametres.index') }}">
                             <i class="bi bi-gear"></i> Paramètres
                         </a>
@@ -122,6 +219,22 @@
             
             <!-- Main content -->
             <div class="col-md-10 col-lg-10 main-content">
+                <!-- Bannière Trial Countdown (si < 7 jours) -->
+                {% if license_status is defined and license_status.should_show_cta and license_status.days_left > 0 and license_status.days_left <= 7 %}
+                <div class="alert alert-warning alert-dismissible fade show d-flex align-items-center" role="alert">
+                    <i class="bi bi-clock-history me-2" style="font-size: 1.5rem;"></i>
+                    <div class="flex-grow-1">
+                        <strong>Votre période d'essai se termine bientôt !</strong>
+                        <br>
+                        <small>Il vous reste {{ license_status.days_left }} jour{{ 's' if license_status.days_left > 1 else '' }}. Passez à la licence Lifetime pour continuer à utiliser Easy Facture sans interruption.</small>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-warning ms-3" data-bs-toggle="modal" data-bs-target="#purchaseModal">
+                        Passer à Lifetime - 199€
+                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endif %}
+
                 <!-- Flash messages -->
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
@@ -140,9 +253,134 @@
         </div>
     </div>
     
+    <!-- Modal d'achat de licence (global) -->
+    <div class="modal fade" id="purchaseModal" tabindex="-1" aria-labelledby="purchaseModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="purchaseModalLabel">
+                        <i class="bi bi-cart-check"></i> Obtenir une licence Lifetime
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        Vous allez être redirigé vers notre page de paiement sécurisée (Stripe).
+                    </div>
+
+                    <form id="purchaseForm">
+                        <div class="mb-3">
+                            <label for="purchaseEmail" class="form-label">Votre adresse email *</label>
+                            <input type="email"
+                                   class="form-control"
+                                   id="purchaseEmail"
+                                   required
+                                   placeholder="votre@email.com"
+                                   value="">
+                            <small class="text-muted">
+                                Votre licence sera envoyée à cette adresse après le paiement
+                            </small>
+                        </div>
+
+                        <div class="alert alert-success">
+                            <strong>Prix: 199€</strong> (paiement unique)
+                            <br>
+                            <small>Paiement sécurisé par Stripe - Carte bancaire acceptée</small>
+                        </div>
+                    </form>
+
+                    <div id="purchaseError" class="alert alert-danger d-none"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-success" id="confirmPurchaseBtn">
+                        <i class="bi bi-lock"></i> Procéder au paiement
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
+
+    <!-- Script global pour achat de licence -->
+    <script>
+    // Fonction pour initier l'achat (réutilisable)
+    function initiateLicensePurchase(email) {
+        const errorDiv = document.getElementById('purchaseError');
+        const btn = document.getElementById('confirmPurchaseBtn');
+
+        // Validation email
+        if (!email || !email.includes('@')) {
+            errorDiv.textContent = 'Veuillez entrer une adresse email valide';
+            errorDiv.classList.remove('d-none');
+            return;
+        }
+
+        // Désactiver le bouton et afficher le chargement
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Redirection...';
+        errorDiv.classList.add('d-none');
+
+        // Appeler l'API pour initier l'achat
+        fetch('/parametres/purchase-license', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email: email })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.checkout_url) {
+                // Rediriger vers Stripe Checkout
+                window.location.href = data.checkout_url;
+            } else {
+                // Afficher l'erreur
+                errorDiv.textContent = data.message || 'Erreur lors de la création de la session de paiement';
+                errorDiv.classList.remove('d-none');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-lock"></i> Procéder au paiement';
+            }
+        })
+        .catch(error => {
+            errorDiv.textContent = 'Erreur réseau: ' + error.message;
+            errorDiv.classList.remove('d-none');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-lock"></i> Procéder au paiement';
+        });
+    }
+
+    // Gestionnaire de clic sur le bouton de confirmation
+    document.addEventListener('DOMContentLoaded', function() {
+        const confirmBtn = document.getElementById('confirmPurchaseBtn');
+        if (confirmBtn) {
+            confirmBtn.addEventListener('click', function() {
+                const email = document.getElementById('purchaseEmail').value;
+                initiateLicensePurchase(email);
+            });
+        }
+
+        // Pré-charger l'email dès le chargement de la page
+        const emailInput = document.getElementById('purchaseEmail');
+        if (emailInput) {
+            fetch('/api/entreprise')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.email && emailInput) {
+                        emailInput.value = data.email;
+                        console.log('Email pré-chargé:', data.email);
+                    }
+                })
+                .catch(error => {
+                    console.log('Email non disponible');
+                });
+        }
+    });
+    </script>
+
     {% block extra_js %}{% endblock %}
 </body>
 </html>

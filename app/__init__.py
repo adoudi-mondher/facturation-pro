@@ -18,22 +18,53 @@ def create_app(config_name='default'):
     
     # Charger la configuration
     app.config.from_object(config[config_name])
-    
+
     # Initialiser les extensions
     from app.extensions import db
     db.init_app(app)
-    
+
+    # Filtres Jinja2 personnalisés (AVANT blueprints)
+    register_template_filters(app)
+
+    # Before request handler pour injecter license_status dans flask.g
+    @app.before_request
+    def load_license_status():
+        """Charge le statut de licence avant chaque requête"""
+        from flask import g
+        try:
+            from app.utils.license import LicenseManager
+            license_manager = LicenseManager()
+            g.license_status = license_manager.get_license_status()
+        except Exception as e:
+            # Fallback gracieux si erreur
+            g.license_status = {
+                'is_valid': True,
+                'license_type': 'trial',
+                'days_left': 15,
+                'message': 'Mode développement (erreur)',
+                'should_show_cta': True,
+                'email': ''
+            }
+
+    # Context processor pour injecter g.license_status dans les templates
+    @app.context_processor
+    def inject_license_status():
+        """Injecte le statut de licence dans tous les templates"""
+        from flask import g
+        return {'license_status': getattr(g, 'license_status', None)}
+
     # Enregistrer les blueprints (routes)
-    from app.routes import main, clients, produits, documents, parametres, api
+    from app.routes import main, clients, produits, documents, parametres, api, rapports
     app.register_blueprint(main.bp)
     app.register_blueprint(clients.bp)
     app.register_blueprint(produits.bp)
     app.register_blueprint(documents.bp)
     app.register_blueprint(parametres.bp)
     app.register_blueprint(api.bp)
+    app.register_blueprint(rapports.bp)
     from app.routes import exports
     app.register_blueprint(exports.bp)
-    
+
     # Route pour servir les fichiers uploadés
     @app.route('/uploads/<path:filename>')
     def uploaded_file(filename):
@@ -42,15 +73,12 @@ def create_app(config_name='default'):
         from flask import send_from_directory
         upload_folder = app.config['UPLOAD_FOLDER']
         return send_from_directory(upload_folder, filename)
-    
+
     # Créer les tables et initialiser les données
     with app.app_context():
         db.create_all()
         init_default_data()
-    
-    # Filtres Jinja2 personnalisés
-    register_template_filters(app)
-    
+
     return app
 
 def init_default_data():
@@ -110,3 +138,4 @@ def register_template_filters(app):
         if hasattr(value, 'strftime'):
             return value.strftime('%d/%m/%Y %H:%M')
         return str(value)
+
