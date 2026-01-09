@@ -53,7 +53,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 ; Application complète (sauf dossier data qui contient la base de données utilisateur)
-Source: "dist\EasyFacture\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "_internal\data\*"
+Source: "dist\EasyFacture\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "data\*"
 ; NOTE: Ne pas utiliser "Flags: ignoreversion" sur les fichiers système
 
 [Icons]
