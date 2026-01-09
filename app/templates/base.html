@@ -163,7 +163,7 @@
 
                     <!-- License CTA Badge -->
                     {% if license_status is defined and license_status.should_show_cta %}
-                    <div class="license-cta" data-bs-toggle="modal" data-bs-target="#purchaseModal">
+                    <div class="license-cta" style="cursor: pointer;" onclick="document.getElementById('purchaseModalTrigger').click();">
                         <div class="badge-trial">
                             Trial{% if license_status.days_left > 0 %} - {{ license_status.days_left }} jours{% endif %}
                         </div>
@@ -173,6 +173,8 @@
                             <i class="bi bi-rocket-takeoff"></i> Débloquer
                         </button>
                     </div>
+                    <!-- Hidden trigger button -->
+                    <button id="purchaseModalTrigger" data-bs-toggle="modal" data-bs-target="#purchaseModal" style="display: none;"></button>
                     {% elif license_status is defined and license_status.license_type == 'lifetime' %}
                     <div class="license-lifetime-badge">
                         <i class="bi bi-check-circle-fill"></i> Licence Lifetime
