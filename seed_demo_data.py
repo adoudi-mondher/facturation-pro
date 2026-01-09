@@ -166,12 +166,12 @@ def create_clients():
         {
             'type': 'entreprise',
             'nom': 'TechStart',
-            'raison_sociale': 'TechStart Innovation SA',
-            'email': 'contact@techstart.ch',
-            'telephone': '+33 1 345 67 89',
-            'adresse': 'Rue de l\'Innovation 15',
-            'code_postal': '1201',
-            'ville': 'Genève',
+            'raison_sociale': 'TechStart Innovation SAS',
+            'email': 'contact@techstart.fr',
+            'telephone': '+33 1 45 67 89 01',
+            'adresse': '15 Rue de l\'Innovation',
+            'code_postal': '75002',
+            'ville': 'Paris',
             'pays': 'France',
             'notes': 'Startup prometteuse dans la fintech. Très intéressés par l\'IA.',
             'actif': True,
@@ -179,12 +179,12 @@ def create_clients():
         {
             'type': 'entreprise',
             'nom': 'Dubois',
-            'raison_sociale': 'Fiduciaire Dubois & Associés Sàrl',
-            'email': 'info@fiduciaire-dubois.ch',
-            'telephone': '+33 4 456 78 90',
-            'adresse': 'Avenue de la Gare 28',
-            'code_postal': '1003',
-            'ville': 'Lausanne',
+            'raison_sociale': 'Cabinet Dubois & Associés',
+            'email': 'info@cabinet-dubois.fr',
+            'telephone': '+33 4 78 90 12 34',
+            'adresse': '28 Avenue de la République',
+            'code_postal': '69003',
+            'ville': 'Lyon',
             'pays': 'France',
             'notes': 'Client fidèle depuis 2 ans. Demandes régulières d\'automatisation.',
             'actif': True,
@@ -193,37 +193,37 @@ def create_clients():
             'type': 'particulier',
             'nom': 'Martin',
             'prenom': 'Sophie',
-            'email': 'sophie.martin@email.ch',
-            'telephone': '+33 6 123 45 67',
-            'adresse': 'Chemin des Fleurs 8',
-            'code_postal': '1260',
-            'ville': 'Nyon',
+            'email': 'sophie.martin@gmail.com',
+            'telephone': '+33 6 12 34 56 78',
+            'adresse': '8 Chemin des Roses',
+            'code_postal': '06000',
+            'ville': 'Nice',
             'pays': 'France',
             'notes': 'Consultante indépendante. Besoin de formation continue.',
             'actif': True,
         },
         {
             'type': 'entreprise',
-            'nom': 'Helvetia',
-            'raison_sociale': 'Association Helvetia Formation',
-            'email': 'admin@helvetia-formation.ch',
-            'telephone': '+33 1 987 65 43',
-            'adresse': 'Place de la Formation 3',
-            'code_postal': '1211',
-            'ville': 'Genève',
+            'nom': 'FormaPro',
+            'raison_sociale': 'Association FormaPro',
+            'email': 'contact@formapro.fr',
+            'telephone': '+33 1 98 76 54 32',
+            'adresse': '3 Place de la Formation',
+            'code_postal': '92100',
+            'ville': 'Boulogne-Billancourt',
             'pays': 'France',
             'notes': 'Association de formation continue. Organise régulièrement des workshops.',
             'actif': True,
         },
         {
             'type': 'entreprise',
-            'nom': 'SwissRetail',
-            'raison_sociale': 'SwissRetail Solutions AG',
-            'email': 'direction@swissretail.ch',
-            'telephone': '+33 3 234 56 78',
-            'adresse': 'Industriestrasse 45',
-            'code_postal': '4052',
-            'ville': 'Bâle',
+            'nom': 'RetailTech',
+            'raison_sociale': 'RetailTech Solutions SAS',
+            'email': 'direction@retailtech.fr',
+            'telephone': '+33 3 23 45 67 89',
+            'adresse': '45 Boulevard du Commerce',
+            'code_postal': '33000',
+            'ville': 'Bordeaux',
             'pays': 'France',
             'notes': 'PME dans le retail. Projet d\'intégration chatbot en cours.',
             'actif': True,
@@ -665,8 +665,146 @@ def create_factures(clients, produits):
     facture10.calculer_totaux()
     factures_list.append(facture10)
 
+    # === FACTURES JANVIER 2026 (pour screenshots) ===
+
+    # Facture 11: RetailTech - Formation équipe PAYÉE (début janvier)
+    facture11 = Document(
+        type='facture',
+        client_id=clients[4].id,  # RetailTech
+        date_emission=datetime(2026, 1, 8),
+        date_echeance=datetime(2026, 2, 7),
+        statut='payee',
+        date_paiement=datetime(2026, 1, 15),
+        conditions_paiement='Paiement à 30 jours',
+        notes='Formation équipe de 8 personnes - Merci !',
+    )
+    facture11.generate_numero()
+    db.session.add(facture11)
+    db.session.flush()
+
+    add_ligne(
+        document_id=facture11.id,
+        produit_id=produits[3].id,  # Formation ChatGPT
+        designation='Formation ChatGPT & IA pour équipe (8 personnes)',
+        quantite=1,
+        prix_ht=Decimal('800.00'),
+        taux_tva=Decimal('20.0'),
+        ordre=1
+    )
+    add_ligne(
+        document_id=facture11.id,
+        produit_id=produits[0].id,  # Consultation
+        designation='Consultation post-formation (3h)',
+        quantite=3,
+        prix_ht=Decimal('150.00'),
+        taux_tva=Decimal('20.0'),
+        ordre=2
+    )
+
+    facture11.calculer_totaux()
+    factures_list.append(facture11)
+
+    # Facture 12: TechStart - Développement module PAYÉE
+    facture12 = Document(
+        type='facture',
+        client_id=clients[0].id,  # TechStart
+        date_emission=datetime(2026, 1, 12),
+        date_echeance=datetime(2026, 2, 11),
+        statut='payee',
+        date_paiement=datetime(2026, 1, 20),
+        conditions_paiement='Paiement à 30 jours',
+    )
+    facture12.generate_numero()
+    db.session.add(facture12)
+    db.session.flush()
+
+    add_ligne(
+        document_id=facture12.id,
+        produit_id=produits[1].id,  # Dev Python
+        designation='Développement module d\'analyse prédictive',
+        quantite=40,
+        prix_ht=Decimal('120.00'),
+        taux_tva=Decimal('20.0'),
+        ordre=1
+    )
+
+    facture12.calculer_totaux()
+    factures_list.append(facture12)
+
+    # Facture 13: Cabinet Dubois - Audit + Formation PAYÉE
+    facture13 = Document(
+        type='facture',
+        client_id=clients[1].id,  # Cabinet Dubois
+        date_emission=datetime(2026, 1, 15),
+        date_echeance=datetime(2026, 2, 14),
+        statut='payee',
+        date_paiement=datetime(2026, 1, 28),
+        conditions_paiement='Paiement à 30 jours',
+    )
+    facture13.generate_numero()
+    db.session.add(facture13)
+    db.session.flush()
+
+    add_ligne(
+        document_id=facture13.id,
+        produit_id=produits[6].id,  # Audit IA
+        designation='Audit système IA et processus',
+        quantite=1,
+        prix_ht=Decimal('2500.00'),
+        taux_tva=Decimal('20.0'),
+        ordre=1
+    )
+    add_ligne(
+        document_id=facture13.id,
+        produit_id=produits[4].id,  # Workshop
+        designation='Workshop automatisation workflows',
+        quantite=1,
+        prix_ht=Decimal('450.00'),
+        taux_tva=Decimal('20.0'),
+        ordre=2
+    )
+
+    facture13.calculer_totaux()
+    factures_list.append(facture13)
+
+    # Facture 14: FormaPro - Workshop + Consultation EN ATTENTE (récente)
+    facture14 = Document(
+        type='facture',
+        client_id=clients[3].id,  # FormaPro
+        date_emission=datetime(2026, 1, 25),
+        date_echeance=datetime(2026, 2, 24),
+        statut='envoyee',
+        conditions_paiement='Paiement à 30 jours',
+        notes='Workshop animé le 20 janvier 2026',
+    )
+    facture14.generate_numero()
+    db.session.add(facture14)
+    db.session.flush()
+
+    add_ligne(
+        document_id=facture14.id,
+        produit_id=produits[4].id,  # Workshop
+        designation='Workshop IA pour formateurs (2 sessions)',
+        quantite=2,
+        prix_ht=Decimal('450.00'),
+        taux_tva=Decimal('20.0'),
+        ordre=1
+    )
+    add_ligne(
+        document_id=facture14.id,
+        produit_id=produits[0].id,  # Consultation
+        designation='Consultation stratégie pédagogique IA',
+        quantite=5,
+        prix_ht=Decimal('150.00'),
+        taux_tva=Decimal('20.0'),
+        ordre=2
+    )
+
+    facture14.calculer_totaux()
+    factures_list.append(facture14)
+
     db.session.commit()
-    print(f"✅ {len(factures_list)} factures créées\n")
+    print(f"✅ {len(factures_list)} factures créées (dont 4 en janvier 2026)\n")
 
     return factures_list
 

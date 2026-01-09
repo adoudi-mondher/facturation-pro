@@ -5,6 +5,7 @@ Fournit des données JSON pour les formulaires dynamiques
 from flask import Blueprint, jsonify
 from app.models.produit import Produit
 from app.models.client import Client
+from app.models.entreprise import Entreprise
 
 bp = Blueprint('api', __name__, url_prefix='/api')
 
@@ -27,7 +28,7 @@ def get_produits():
 def get_clients():
     """Liste des clients pour le formulaire de facture"""
     clients = Client.query.filter_by(actif=True).order_by(Client.nom).all()
-    
+
     return jsonify([{
         'id': c.id,
         'nom_complet': c.nom_complet,
@@ -36,3 +37,13 @@ def get_clients():
         'code_postal': c.code_postal,
         'ville': c.ville
     } for c in clients])
+
+@bp.route('/entreprise')
+def get_entreprise():
+    """Récupère les informations de l'entreprise (email pour pré-remplissage)"""
+    entreprise = Entreprise.get_instance()
+
+    return jsonify({
+        'email': entreprise.email or '',
+        'nom': entreprise.nom or ''
+    })

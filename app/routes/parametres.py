@@ -2,10 +2,12 @@
 Routes Paramètres
 """
 import os
-from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app, jsonify
 from werkzeug.utils import secure_filename
 from app.models.entreprise import Entreprise
 from app.extensions import db
+from app.utils.payment import payment_manager
+from app.utils.license import LicenseManager
 
 bp = Blueprint('parametres', __name__, url_prefix='/parametres')
 
@@ -85,7 +87,7 @@ def save():
 def delete_logo():
     """Supprimer le logo"""
     entreprise = Entreprise.get_instance()
-    
+
     if entreprise.logo_path and os.path.exists(entreprise.logo_path):
         try:
             os.remove(entreprise.logo_path)
@@ -94,5 +96,48 @@ def delete_logo():
             flash('Logo supprimé', 'success')
         except Exception as e:
             flash(f'Erreur lors de la suppression : {str(e)}', 'error')
-    
+
     return redirect(url_for('parametres.index'))
+
+
+@bp.route('/purchase-license', methods=['POST'])
+def purchase_license():
+    """Initier l'achat d'une licence lifetime"""
+    try:
+        # Récupérer l'email depuis le formulaire
+        email = request.json.get('email') if request.is_json else request.form.get('email')
+
+        if not email:
+            return jsonify({
+                'success': False,
+                'message': 'Email requis'
+            }), 400
+
+        # Récupérer le machine_id
+        license_manager = LicenseManager()
+        machine_id = license_manager.get_machine_id()
+
+        # Appeler l'API pour créer la session Stripe
+        success, message, checkout_url = payment_manager.purchase_lifetime_license(
+            email=email,
+            machine_id=machine_id,
+            currency='eur'
+        )
+
+        if success:
+            return jsonify({
+                'success': True,
+                'message': message,
+                'checkout_url': checkout_url
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': message
+            }), 400
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Erreur: {str(e)}'
+        }), 500

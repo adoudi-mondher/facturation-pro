@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Paramètres - Facturation Pro{% endblock %}
+{% block title %}Paramètres - Easy Facture{% endblock %}
 {% block content %}
 <h1><i class="bi bi-gear"></i> Paramètres de l'entreprise</h1>
 
@@ -188,11 +188,143 @@
                     </div>
                 </div>
             </div>
-            
+
             <button type="submit" class="btn btn-primary">
                 <i class="bi bi-save"></i> Sauvegarder
             </button>
         </form>
     </div>
 </div>
+
+<!-- Section Licence -->
+<div class="card mt-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="bi bi-key"></i> Licence Easy Facture</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-8">
+                <h6>Licence Lifetime - 199€</h6>
+                <p class="text-muted">
+                    Passez à la licence lifetime et profitez de toutes les fonctionnalités d'Easy Facture sans limitation de durée.
+                </p>
+                <ul class="mb-3">
+                    <li>✅ Accès illimité à toutes les fonctionnalités</li>
+                    <li>✅ Mises à jour gratuites à vie</li>
+                    <li>✅ Support technique prioritaire</li>
+                    <li>✅ Paiement unique, aucun abonnement</li>
+                </ul>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="p-3 bg-light rounded">
+                    <h3 class="text-primary mb-0">199€</h3>
+                    <small class="text-muted">Paiement unique</small>
+                </div>
+                <button type="button" class="btn btn-success btn-lg mt-3"
+                        data-bs-toggle="modal" data-bs-target="#purchaseModal">
+                    <i class="bi bi-cart-check"></i> Obtenir la licence
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal d'achat de licence -->
+<div class="modal fade" id="purchaseModal" tabindex="-1" aria-labelledby="purchaseModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="purchaseModalLabel">
+                    <i class="bi bi-cart-check"></i> Obtenir une licence Lifetime
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i>
+                    Vous allez être redirigé vers notre page de paiement sécurisée (Stripe).
+                </div>
+
+                <form id="purchaseForm">
+                    <div class="mb-3">
+                        <label for="purchaseEmail" class="form-label">Votre adresse email *</label>
+                        <input type="email"
+                               class="form-control"
+                               id="purchaseEmail"
+                               required
+                               placeholder="votre@email.com"
+                               value="{{ entreprise.email or '' }}">
+                        <small class="text-muted">
+                            Votre licence sera envoyée à cette adresse après le paiement
+                        </small>
+                    </div>
+
+                    <div class="alert alert-success">
+                        <strong>Prix: 199€</strong> (paiement unique)
+                        <br>
+                        <small>Paiement sécurisé par Stripe - Carte bancaire acceptée</small>
+                    </div>
+                </form>
+
+                <div id="purchaseError" class="alert alert-danger d-none"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-success" id="confirmPurchaseBtn">
+                    <i class="bi bi-lock"></i> Procéder au paiement
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('confirmPurchaseBtn').addEventListener('click', function() {
+    const email = document.getElementById('purchaseEmail').value;
+    const errorDiv = document.getElementById('purchaseError');
+    const btn = this;
+
+    // Validation email
+    if (!email || !email.includes('@')) {
+        errorDiv.textContent = 'Veuillez entrer une adresse email valide';
+        errorDiv.classList.remove('d-none');
+        return;
+    }
+
+    // Désactiver le bouton et afficher le chargement
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Redirection...';
+    errorDiv.classList.add('d-none');
+
+    // Appeler l'API pour initier l'achat
+    fetch('/parametres/purchase-license', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: email })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.checkout_url) {
+            // Rediriger vers Stripe Checkout
+            window.location.href = data.checkout_url;
+        } else {
+            // Afficher l'erreur
+            errorDiv.textContent = data.message || 'Erreur lors de la création de la session de paiement';
+            errorDiv.classList.remove('d-none');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-lock"></i> Procéder au paiement';
+        }
+    })
+    .catch(error => {
+        errorDiv.textContent = 'Erreur réseau: ' + error.message;
+        errorDiv.classList.remove('d-none');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-lock"></i> Procéder au paiement';
+    });
+});
+</script>
 {% endblock %}

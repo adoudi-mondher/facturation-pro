@@ -4,7 +4,7 @@
 Point d'entree principal de l'application desktop
 Lance Flask en arriere-plan et ouvre le navigateur automatiquement
 
-Version 1.6 : Avec systeme de protection par licence (optionnel)
+Version 1.7 : Easy Facture avec rapports CA et système de licence
 """
 
 import os
@@ -328,7 +328,7 @@ def create_system_tray_icon(port=5000):
         )
 
         # Creer l'icone
-        icon = pystray.Icon('EasyFacture', icon_image, 'Easy Facture v1.7', menu)
+        icon = pystray.Icon('EasyFacture', icon_image, 'Easy Facture v1.7.0', menu)
 
         # Lancer dans un thread
         threading.Thread(target=icon.run, daemon=True).start()
@@ -341,7 +341,7 @@ def main():
     """Lance l'application desktop"""
     try:
         print("=" * 60)
-        print("DEMARRAGE DE FACTURATION PRO v1.6")
+        print("DEMARRAGE DE EASY FACTURE v1.7.0")
         print("=" * 60)
         print()
 
