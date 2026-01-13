@@ -1,7 +1,7 @@
 # 🔧 Corrections du Build Windows - EasyFacture v1.6.0
 
 **Date :** 12 décembre 2025
-**Par :** Claude Code Assistant
+**Par :** Mondher Adoudi
 
 ---
 

@@ -1,7 +1,7 @@
 # 🔒 Analyse de sécurité - Facturation Pro v1.6.0
 
 **Date** : 12 décembre 2025
-**Analysé par** : Claude Code Assistant
+**Analysé par** : Mondher Adoudi
 
 ---
 

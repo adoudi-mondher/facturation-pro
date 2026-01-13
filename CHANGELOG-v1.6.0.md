@@ -181,6 +181,6 @@
 **Version** : 1.6.0
 **Date** : 12 décembre 2025
 **Auteur** : Mondher ADOUDI - Sidr Valley AI
-**Assistant** : Claude Code (Anthropic)
+**Assistant** : Mondher Adoudi
 
 **Statut** : ✅ Production Ready
