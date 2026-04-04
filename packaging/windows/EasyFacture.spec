@@ -8,6 +8,7 @@ a = Analysis(
     binaries=[],
     datas=[
         ('../../app', 'app'),
+        ('../../data', 'data'),
         ('../../static', 'static'),
         ('../../config.py', '.'),
         ('../../icons', 'icons'),

@@ -480,55 +480,51 @@ def edit_devis(id):
                          form=form, 
                          devis=devis)
 
+def _generate_and_send_pdf(document):
+    """Génère le PDF d'un document et retourne la réponse Flask pour le téléchargement."""
+    ent = Entreprise.get_instance()
+    entreprise = {
+        'nom_entreprise': ent.nom or 'Mon Entreprise',
+        'adresse': ent.adresse or '',
+        'code_postal': ent.code_postal or '',
+        'ville': ent.ville or '',
+        'telephone': ent.telephone or '',
+        'email': ent.email or '',
+        'siret': ent.siret or '',
+        'tva_intra': ent.tva_intra or '',
+        'mentions_legales': ent.mentions_legales or '',
+        'logo_path': ent.logo_path or ''
+    }
+
+    pdf_dir = os.path.join(str(current_app.config['DATA_DIR']), 'pdf')
+    os.makedirs(pdf_dir, exist_ok=True)
+    pdf_filename = f"{document.type}_{document.numero.replace('/', '_')}.pdf"
+    pdf_path = os.path.join(pdf_dir, pdf_filename)
+
+    PDFService(document, entreprise).generate(pdf_path)
+
+    document.pdf_path = pdf_path
+    db.session.commit()
+
+    return send_file(
+        pdf_path,
+        mimetype='application/pdf',
+        as_attachment=True,
+        download_name=pdf_filename
+    )
+
+
 @bp.route('/factures/<int:id>/pdf')
 def facture_pdf(id):
     """Générer le PDF d'une facture"""
     facture = Document.query.get_or_404(id)
-    
+
     if facture.type != 'facture':
         flash('❌ Ce document n\'est pas une facture', 'error')
         return redirect(url_for('documents.view', id=id))
-    
+
     try:
-       # Récupérer les infos entreprise
-        ent = Entreprise.get_instance()
-        entreprise = {
-            'nom_entreprise': ent.nom or 'Mon Entreprise',
-            'adresse': ent.adresse or '',
-            'code_postal': ent.code_postal or '',
-            'ville': ent.ville or '',
-            'telephone': ent.telephone or '',
-            'email': ent.email or '',
-            'siret': ent.siret or '',
-            'tva_intra': ent.tva_intra or '',
-            'mentions_legales': ent.mentions_legales or '',
-            'logo_path': ent.logo_path or ''
-        }
-        
-        # Générer le PDF
-        pdf_service = PDFService(facture, entreprise)
-        
-        # Chemin du PDF (chemin absolu depuis la racine du projet)
-        pdf_dir = os.path.join(os.path.dirname(current_app.root_path), 'data', 'pdf')
-        os.makedirs(pdf_dir, exist_ok=True)
-        pdf_filename = f"facture_{facture.numero.replace('/', '_')}.pdf"
-        pdf_path = os.path.join(pdf_dir, pdf_filename)
-        
-        # Générer
-        pdf_service.generate(pdf_path)
-        
-        # Sauvegarder le chemin en BDD
-        facture.pdf_path = pdf_path
-        db.session.commit()
-        
-        # Envoyer le fichier
-        return send_file(
-            pdf_path,
-            mimetype='application/pdf',
-            as_attachment=True,
-            download_name=pdf_filename
-        )
-        
+        return _generate_and_send_pdf(facture)
     except Exception as e:
         flash(f'❌ Erreur lors de la génération du PDF : {str(e)}', 'error')
         return redirect(url_for('documents.view', id=id))
@@ -537,51 +533,13 @@ def facture_pdf(id):
 def devis_pdf(id):
     """Générer le PDF d'un devis"""
     devis = Document.query.get_or_404(id)
-    
+
     if devis.type != 'devis':
         flash('❌ Ce document n\'est pas un devis', 'error')
         return redirect(url_for('documents.view', id=id))
-    
+
     try:
-        # Récupérer les infos entreprise
-        ent = Entreprise.get_instance()
-        entreprise = {
-            'nom_entreprise': ent.nom or 'Mon Entreprise',
-            'adresse': ent.adresse or '',
-            'code_postal': ent.code_postal or '',
-            'ville': ent.ville or '',
-            'telephone': ent.telephone or '',
-            'email': ent.email or '',
-            'siret': ent.siret or '',
-            'tva_intra': ent.tva_intra or '',
-            'mentions_legales': ent.mentions_legales or '',
-            'logo_path': ent.logo_path or ''
-        }
-        
-        # Générer le PDF
-        pdf_service = PDFService(devis, entreprise)
-        
-        # Chemin du PDF (chemin absolu depuis la racine du projet)
-        pdf_dir = os.path.join(os.path.dirname(current_app.root_path), 'data', 'pdf')
-        os.makedirs(pdf_dir, exist_ok=True)
-        pdf_filename = f"devis_{devis.numero.replace('/', '_')}.pdf"
-        pdf_path = os.path.join(pdf_dir, pdf_filename)
-        
-        # Générer
-        pdf_service.generate(pdf_path)
-        
-        # Sauvegarder le chemin en BDD
-        devis.pdf_path = pdf_path
-        db.session.commit()
-        
-        # Envoyer le fichier
-        return send_file(
-            pdf_path,
-            mimetype='application/pdf',
-            as_attachment=True,
-            download_name=pdf_filename
-        )
-        
+        return _generate_and_send_pdf(devis)
     except Exception as e:
         flash(f'❌ Erreur lors de la génération du PDF : {str(e)}', 'error')
         return redirect(url_for('documents.view', id=id))
