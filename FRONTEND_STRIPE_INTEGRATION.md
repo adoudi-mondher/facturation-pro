@@ -349,4 +349,4 @@ curl -X POST http://localhost:5000/parametres/purchase-license \
 ---
 
 **Créé le:** 2026-01-03
-**Auteur:** Claude & Mondher
+**Auteur:** Mondher

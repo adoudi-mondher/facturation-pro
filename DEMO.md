@@ -221,4 +221,4 @@ Qu'est-ce qui te tente le plus ? 🚀
 
 **Version :** 1.0 - Prototype fonctionnel  
 **Date :** 27 novembre 2025  
-**Auteurs :** Mondher & Claude 💪
+**Auteurs :** Mondher 💪

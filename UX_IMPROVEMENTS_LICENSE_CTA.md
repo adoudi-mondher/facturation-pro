@@ -504,5 +504,5 @@ def inject_license_status():
 ---
 
 **Créé le:** 2026-01-03
-**Auteur:** Claude & Mondher
+**Auteur:** Mondher
 **Version:** 2.0 - UX Optimisée

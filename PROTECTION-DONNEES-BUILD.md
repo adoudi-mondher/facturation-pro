@@ -291,4 +291,4 @@ Si vos données sont quand même perdues :
 
 **Version :** 1.6.0
 **Date :** Décembre 2025
-**Par :** Claude Code Assistant + Mondher ADOUDI
+**Par :** Mondher ADOUDI

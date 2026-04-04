@@ -884,5 +884,5 @@ STRIPE_WEBHOOK_SECRET=whsec_XXXXXXXXXX
 **Document créé le:** 2026-01-03
 **Dernière mise à jour:** 2026-01-03
 **Version:** 1.0
-**Auteur:** Claude & Mondher
+**Auteur:** Mondher
 

@@ -262,6 +262,6 @@ bash packaging/windows/build_for_client.sh
 
 **Version :** 1.6.0
 **Date :** Décembre 2025
-**Par :** Claude Code Assistant + Mondher ADOUDI
+**Par :** Mondher ADOUDI
 
 **⚠️ RÈGLE D'OR** : Utilisez TOUJOURS `build_for_client` pour distribuer !

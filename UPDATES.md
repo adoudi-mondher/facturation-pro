@@ -232,6 +232,6 @@ Aucun pour le moment ! 🎉
 
 ---
 
-**Auteurs :** Mondher & Claude 💪  
+**Auteurs :** Mondher 💪  
 **Version :** 1.1  
 **Date :** 27 novembre 2025
